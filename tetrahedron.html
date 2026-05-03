@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tetrahedron</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #ffffff; overflow: hidden; }
+  canvas { display: block; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; }
+  canvas.grabbing { cursor: grabbing; }
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  let dpr = 1, cw = 0, ch = 0;
+
+  function resize() {
+    dpr = window.devicePixelRatio || 1;
+    cw = window.innerWidth;
+    ch = window.innerHeight;
+    canvas.width = Math.round(cw * dpr);
+    canvas.height = Math.round(ch * dpr);
+    canvas.style.width = cw + 'px';
+    canvas.style.height = ch + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const S = Math.sqrt(8) / 3;
+  const ZB = -1 / 3;
+  const vertices = [
+    [0, 0, 1],
+    [S * Math.cos(Math.PI * 0.5),     S * Math.sin(Math.PI * 0.5),     ZB],
+    [S * Math.cos(Math.PI * 7 / 6),   S * Math.sin(Math.PI * 7 / 6),   ZB],
+    [S * Math.cos(Math.PI * 11 / 6),  S * Math.sin(Math.PI * 11 / 6),  ZB],
+  ];
+
+  const faces = [
+    [0, 1, 2],
+    [0, 2, 3],
+    [0, 3, 1],
+    [1, 3, 2],
+  ];
+
+  const localNormals = faces.map(f => {
+    const a = vertices[f[0]], b = vertices[f[1]], c = vertices[f[2]];
+    const ux = b[0]-a[0], uy = b[1]-a[1], uz = b[2]-a[2];
+    const vx = c[0]-a[0], vy = c[1]-a[1], vz = c[2]-a[2];
+    let nx = uy*vz - uz*vy;
+    let ny = uz*vx - ux*vz;
+    let nz = ux*vy - uy*vx;
+    const m = Math.hypot(nx, ny, nz);
+    return [nx/m, ny/m, nz/m];
+  });
+
+  const R = new Float64Array([1,0,0, 0,1,0, 0,0,1]);
+  const Rscratch = new Float64Array(9);
+  const tmpR = new Float64Array(9);
+
+  function makeAxisAngle(out, ax, ay, az, theta) {
+    const c = Math.cos(theta), s = Math.sin(theta), t = 1 - c;
+    const xx = ax*ax, yy = ay*ay, zz = az*az;
+    const xy = ax*ay, xz = ax*az, yz = ay*az;
+    out[0] = c + xx*t;     out[1] = xy*t - az*s;  out[2] = xz*t + ay*s;
+    out[3] = xy*t + az*s;  out[4] = c + yy*t;     out[5] = yz*t - ax*s;
+    out[6] = xz*t - ay*s;  out[7] = yz*t + ax*s;  out[8] = c + zz*t;
+  }
+
+  function matMul(out, A, B) {
+    const a0=A[0],a1=A[1],a2=A[2],a3=A[3],a4=A[4],a5=A[5],a6=A[6],a7=A[7],a8=A[8];
+    const b0=B[0],b1=B[1],b2=B[2],b3=B[3],b4=B[4],b5=B[5],b6=B[6],b7=B[7],b8=B[8];
+    out[0] = a0*b0 + a1*b3 + a2*b6;
+    out[1] = a0*b1 + a1*b4 + a2*b7;
+    out[2] = a0*b2 + a1*b5 + a2*b8;
+    out[3] = a3*b0 + a4*b3 + a5*b6;
+    out[4] = a3*b1 + a4*b4 + a5*b7;
+    out[5] = a3*b2 + a4*b5 + a5*b8;
+    out[6] = a6*b0 + a7*b3 + a8*b6;
+    out[7] = a6*b1 + a7*b4 + a8*b7;
+    out[8] = a6*b2 + a7*b5 + a8*b8;
+  }
+
+  function leftMul(M, delta) { matMul(Rscratch, delta, M); M.set(Rscratch); }
+
+  function transformVec(out, M, v) {
+    const x = v[0], y = v[1], z = v[2];
+    out[0] = M[0]*x + M[1]*y + M[2]*z;
+    out[1] = M[3]*x + M[4]*y + M[5]*z;
+    out[2] = M[6]*x + M[7]*y + M[8]*z;
+  }
+
+  const wv = [new Float64Array(3), new Float64Array(3), new Float64Array(3), new Float64Array(3)];
+  const wn = [new Float64Array(3), new Float64Array(3), new Float64Array(3), new Float64Array(3)];
+  const sv = [new Float64Array(2), new Float64Array(2), new Float64Array(2), new Float64Array(2)];
+  const fScore = new Float64Array(4);
+  const fDepth = new Float64Array(4);
+  const fOrder = [0, 1, 2, 3];
+  const cmpDepth = (a, b) => fDepth[a] - fDepth[b];
+
+  const CAM_Z = 4;
+  const SIZE = 0.15;
+  const FOCAL = 700 * SIZE;
+  const LINE_WIDTH = 10 * SIZE;
+
+  const FRAME_SIZE = Math.ceil(2 * FOCAL / Math.sqrt(CAM_Z * CAM_Z - 1) + LINE_WIDTH + 2);
+  if (window.parent !== window) {
+    window.parent.postMessage({ type: 'tetra-size', size: FRAME_SIZE }, '*');
+  }
+
+  const RED = '#f32232', GREEN = '#3cb027', BLUE = '#0068c8';
+  const faceColors = [RED, GREEN, BLUE, BLUE];
+  let firstFrame = true;
+
+  const SPIN_SPEED = 1.4;
+  const TAU = Math.PI * 2;
+
+  let dragging = false, lastX = 0, lastY = 0;
+
+  canvas.addEventListener('pointerdown', (e) => {
+    dragging = true;
+    lastX = e.clientX; lastY = e.clientY;
+    canvas.classList.add('grabbing');
+    canvas.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    lastX = e.clientX; lastY = e.clientY;
+    const sens = 0.005;
+    if (dx) { makeAxisAngle(tmpR, 0, 1, 0, dx * sens); leftMul(R, tmpR); }
+    if (dy) { makeAxisAngle(tmpR, 1, 0, 0, dy * sens); leftMul(R, tmpR); }
+  });
+  function endDrag() {
+    if (!dragging) return;
+    dragging = false;
+    canvas.classList.remove('grabbing');
+  }
+  canvas.addEventListener('pointerup', endDrag);
+  canvas.addEventListener('pointercancel', endDrag);
+  canvas.addEventListener('lostpointercapture', endDrag);
+
+  let lastTime = performance.now();
+
+  function tick(now) {
+    const dt = Math.min(0.05, (now - lastTime) / 1000);
+    lastTime = now;
+    const t = now / 1000;
+
+    if (!dragging) {
+      const u = 0.25 * Math.sin(TAU * 0.061 * t + 0.4)
+              + 0.15 * Math.sin(TAU * 0.097 * t + 1.7);
+      const v = TAU * 0.131 * t + 0.7 * Math.sin(TAU * 0.043 * t);
+      const st = Math.sqrt(Math.max(0, 1 - u * u));
+      makeAxisAngle(tmpR, st * Math.cos(v), st * Math.sin(v), u, SPIN_SPEED * dt);
+      leftMul(R, tmpR);
+    }
+
+    transformVec(wv[0], R, vertices[0]); transformVec(wv[1], R, vertices[1]);
+    transformVec(wv[2], R, vertices[2]); transformVec(wv[3], R, vertices[3]);
+    transformVec(wn[0], R, localNormals[0]); transformVec(wn[1], R, localNormals[1]);
+    transformVec(wn[2], R, localNormals[2]); transformVec(wn[3], R, localNormals[3]);
+
+    const cx = cw * 0.5, cy = ch * 0.5;
+    const focal = FOCAL;
+    for (let i = 0; i < 4; i++) {
+      const v = wv[i];
+      const inv = 1 / (CAM_Z - v[2]);
+      sv[i][0] = focal * v[0] * inv + cx;
+      sv[i][1] = -focal * v[1] * inv + cy;
+    }
+
+    for (let i = 0; i < 4; i++) {
+      fScore[i] = wn[i][2];
+      const f = faces[i];
+      fDepth[i] = (wv[f[0]][2] + wv[f[1]][2] + wv[f[2]][2]) * (1/3);
+    }
+
+    if (firstFrame) {
+      firstFrame = false;
+      const order = [0,1,2,3].sort((a,b) => fScore[b] - fScore[a]);
+      faceColors[order[0]] = RED;
+      faceColors[order[1]] = GREEN;
+      faceColors[order[2]] = BLUE;
+      faceColors[order[3]] = faceColors[order[2]];
+    } else {
+      let hidIdx = 0, hidScore = fScore[0];
+      for (let i = 1; i < 4; i++) if (fScore[i] < hidScore) { hidScore = fScore[i]; hidIdx = i; }
+      let lowVisIdx = -1, lowVisScore = Infinity;
+      for (let i = 0; i < 4; i++) {
+        if (i === hidIdx) continue;
+        if (fScore[i] < lowVisScore) { lowVisScore = fScore[i]; lowVisIdx = i; }
+      }
+      if (hidScore < -0.02 && lowVisIdx !== -1) {
+        faceColors[hidIdx] = faceColors[lowVisIdx];
+      }
+    }
+
+    let usedR = false, usedG = false, usedB = false;
+    let dupA = -1, dupB = -1;
+    for (let i = 0; i < 4; i++) {
+      if (fScore[i] <= 0) continue;
+      for (let j = 0; j < i; j++) {
+        if (fScore[j] > 0 && faceColors[i] === faceColors[j]) { dupA = j; dupB = i; }
+      }
+      const c = faceColors[i];
+      if (c === RED) usedR = true;
+      else if (c === GREEN) usedG = true;
+      else usedB = true;
+    }
+    if (dupA !== -1) {
+      const missing = !usedR ? RED : (!usedG ? GREEN : BLUE);
+      const target = (fScore[dupA] < fScore[dupB]) ? dupA : dupB;
+      faceColors[target] = missing;
+    }
+
+    fOrder[0] = 0; fOrder[1] = 1; fOrder[2] = 2; fOrder[3] = 3;
+    fOrder.sort(cmpDepth);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, cw, ch);
+    ctx.lineWidth = LINE_WIDTH;
+    ctx.strokeStyle = '#242526';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    for (let k = 0; k < 4; k++) {
+      const fi = fOrder[k];
+      if (fScore[fi] <= 0) continue;
+      const f = faces[fi];
+      const a = sv[f[0]], b = sv[f[1]], c = sv[f[2]];
+      ctx.beginPath();
+      ctx.moveTo(a[0], a[1]);
+      ctx.lineTo(b[0], b[1]);
+      ctx.lineTo(c[0], c[1]);
+      ctx.closePath();
+      ctx.fillStyle = faceColors[fi];
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

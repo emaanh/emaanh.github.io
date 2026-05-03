@@ -1,0 +1,106 @@
+<HTML>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<title>Emaan Heidari</title>
+<style>
+#tetra-frame {
+  position: relative;
+  left: 10px;
+  top: 20px;
+  z-index: 1;
+  pointer-events: auto;
+}
+</style>
+</head>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+
+<h1>Emaan Heidari Homepage &copy;</h1>
+
+
+<IMG ALIGN="left" WIDTH=175 HSPACE=30 SRC="imgs/me.jpg" alt="EH picture">
+<UL>
+<li>Emaan Heidari
+
+<li>Systems &amp; ML
+<li>Bay Area, CA
+<li>CE + CS @ <a href="https://www.usc.edu/">University of Southern California</a>, Los Angeles
+<li><a href="mailto:eheidari@usc.edu">eheidari@usc.edu</a>
+<li><a href="https://github.com/emaanh">github.com/emaanh</a>
+<li><a href="https://linkedin.com/in/emaanheidari">linkedin.com/in/emaanheidari</a>
+</ul>
+
+<br clear="left">
+<hr>
+
+<h2>About</h2>
+
+I'm a computer engineering + CS student at USC and I build high-throughput + low-latency systems software.
+<br><br>
+I'm interested in AI infrastructure, especially runtimes, training infrastructure, inference optimization, and model serving. I recently implemented a Flash-Decoding attention kernel with paged KV caches to study efficient LLM inference. I've also built a FPGA inference accelerator in Verilog, using fixed-point arithmetic, LUT activations, and quantization-aware training.
+
+<br><br>
+
+I've worked on edge systems across drone autonomy, rocket engine data acquisition, and AI accelerator firmware, and this summer I'll be writing embedded Rust as a SWE intern at Tesla.
+
+
+<!--
+<h2>Sometimes I write about an assortment of topics</h2>
+<ul>
+<li>Apr 2026: <a href="#">How to figure out what you want to do</a> - notes from reading cal newport
+<li>Apr 2026: <a href="#">Efficient Decode Attention</a>  
+</ul>
+--!>
+
+
+<h2>Some things I've built
+<iframe id="tetra-frame" src="tetrahedron.html" width="0" height="0" frameborder="0" scrolling="no" title="spinning 3-faced tetrahedron"></iframe>
+<script>
+window.addEventListener('message', function (e) {
+  if (e.data && e.data.type === 'tetra-size') {
+    var f = document.getElementById('tetra-frame');
+    f.width = e.data.size;
+    f.height = e.data.size;
+  }
+});
+</script>
+
+</h2>
+<p>Drag around this tetrahedron. Try to count the number of faces.</p>
+<ul>
+
+<!--<li>The night before my parallel computing final, I couldn't stop wondering
+what a <a href="tetrahedron.html">3-faced tetrahedron</a> looks like.
+First thing I did after was make it. (drag it to rotate)
+--!>
+
+
+
+<li><a href="#">FPGA neural inference accelerator</a>: pipelined Verilog,
+8.95&micro;s latency per inference, 95.1% accuracy with quantization-aware training.
+<li><a href="https://murmurmatch.com">MurmurMatch</a>: a college social platform.
+Grew to 55k users (51% of Dartmouth, 27% of Stanford).
+GCP autoscaling, indexed SQL with Redis, ~50ms p99.
+</ul>
+
+<h2>Work experience</h2>
+<ul>
+<li><a href="https://www.tesla.com/">Tesla</a>:  incoming SWE intern, Energy (Summer 2026)
+<li><a href="https://usclpl.com/">USC Liquid Propulsion Lab</a>: C++ data acquisition for a liquid bipropellant engine + feed system 
+<li><a href="https://sifly.co/">SiFly</a>: drone autonomy systems, PX4 failsafes, simulation framework
+<li><a href="https://www.tandemlaunch.com/">TandemLaunch</a>: firmware for an analog AI accelerator
+</ul>
+
+<h2> Random </h2>
+<h3>Things I like</h3>
+- card/board games, roller coasters, on-euclidean geometry, ocean, fire, hiking, gym, reading, thinking 
+
+<h3>Favorite Quotes</h3>
+- "All of humanity's problems stem from man's inability to sit quietly in a room alone." -Blaise Pascal <br>
+- "Premature optimization is the root of all evil" - Donald Knuth <br>
+- "Be so good they can't ignore you" - Steve Martin <br>
+
+
+<hr>
+<em>Last fiddled: May 2026.</em>
+</body>
+</HTML>
