@@ -36,10 +36,8 @@
 
 I'm a computer engineering + CS student at USC and I build high-throughput + low-latency systems software.
 <br><br>
-I'm interested in AI infrastructure, especially runtimes, training infrastructure, inference optimization, and model serving. I recently implemented a Flash-Decoding attention kernel with paged KV caches to study efficient LLM inference. I've also built a FPGA inference accelerator in Verilog, using fixed-point arithmetic, LUT activations, and quantization-aware training.
-
+I'm interested in AI infrastructure, especially runtimes, training infrastructure, inference optimization, and model serving.
 <br><br>
-
 I've worked on edge systems across drone autonomy, rocket engine data acquisition, and AI accelerator firmware, and this summer I'll be writing embedded Rust as a SWE intern at Tesla.
 
 
@@ -74,11 +72,10 @@ First thing I did after was make it. (drag it to rotate)
 --!>
 
 
-<li><a href="decode_attention.pdf">Efficient Decode Attention</a>: A from-scratch CUDA implementation of Flash-Decoding and paged KV cache memory management, benchmarked on an NVIDIA A40
-<li><a href="#">FPGA neural inference accelerator</a>: pipelined Verilog,
-8.95&micro;s latency per inference, 95.1% accuracy with quantization-aware training.
-<li><a href="https://murmurmatch.com">MurmurMatch</a>: a college social platform.
-Grew to 55k users. Used by 51% of Dartmouth and 27% of Stanford.
+<li><a href="decode_attention.pdf">Efficient Decode Attention</a>: A CUDA implementation of Flash-Decoding and paged KV cache memory management
+<li><a href="cka.pdf">Representational Regularization for Diverse LLM Ensembles</a>: Improved LLM ensemble diversity and performance with CKA penality + router with at negligible additional inference cost.
+<li><a href="fpga.pdf">FPGA neural inference accelerator</a>: low latency, fixed-point arithmetic, LUT activations, and quantized-aware training.
+<li><a href="https://murmurmatch.com">MurmurMatch</a>: College social platform with 55k users. Used by 51% of Dartmouth and 27% of Stanford.
 <li><a href="#">Room Radar</a> iot devices to detect human presence via radar
 <li><a href="https://github.com/emaanh/classfinder">Empty Classroom Finder</a> A tool to quickly check for available classrooms on campus @ USC.
 <li><a href="https://github.com/emaanh/jonesspeak">JonesSpeak v3.1</a> Achieved state-of-the-art compression on natural language text using transformers + arithmetic coders
