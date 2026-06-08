@@ -1,8 +1,17 @@
-<HTML>
+<!DOCTYPE html>
+<html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>Emaan Heidari</title>
 <style>
+body {
+  max-width: 900px;
+  margin: 32px auto;
+  padding: 0 20px;
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.45;
+}
+
 #tetra-frame {
   position: relative;
   left: 10px;
@@ -10,23 +19,31 @@
   z-index: 1;
   pointer-events: auto;
 }
+
+img {
+  margin-bottom: 12px;
+}
+
+li {
+  margin: 3px 0;
+}
 </style>
 </head>
-<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#0000FF" VLINK="#330088" ALINK="#FF0044">
+
+<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#330088" alink="#FF0044">
 
 <h1>Emaan Heidari Homepage &copy;</h1>
 
+<img align="left" width="175" hspace="30" src="imgs/me.jpg" alt="Emaan Heidari picture">
 
-<IMG ALIGN="left" WIDTH=175 HSPACE=30 SRC="imgs/me.jpg" alt="EH picture">
-<UL>
-<li>Emaan Heidari
-
-<li>Systems &amp; ML
-<li>Bay Area, CA
-<li>CE + CS @ <a href="https://www.usc.edu/">USC</a>
-<li><a href="mailto:eheidari@usc.edu">eheidari@usc.edu</a>
-<li><a href="https://github.com/emaanh">github.com/emaanh</a>
-<li><a href="https://linkedin.com/in/emaanheidari">linkedin.com/in/emaanheidari</a>
+<ul>
+<li>Emaan Heidari</li>
+<li>Systems &amp; ML</li>
+<li>Bay Area, CA</li>
+<li>CE + CS @ <a href="https://www.usc.edu/">USC</a></li>
+<li><a href="mailto:eheidari@usc.edu">eheidari@usc.edu</a></li>
+<li><a href="https://github.com/emaanh">github.com/emaanh</a></li>
+<li><a href="https://linkedin.com/in/emaanheidari">linkedin.com/in/emaanheidari</a></li>
 </ul>
 
 <br clear="left">
@@ -34,23 +51,14 @@
 
 <h2>About</h2>
 
-I'm 20 and studying computer engineering + CS at USC. I build high-throughput + low-latency systems software.
-<br><br>
-I'm interested in AI infrastructure, especially runtimes, training infrastructure, inference optimization, and model serving.
-<br><br>
-I've worked on edge systems across drone autonomy, rocket engine data acquisition, and AI accelerator firmware, and this summer I'll be writing embedded Rust as a SWE intern at Tesla.
+<p>I'm 20 and studying computer engineering + CS at USC. I build high-throughput + low-latency systems software.</p>
 
+<p>I'm interested in AI infrastructure, especially runtimes, training infrastructure, inference optimization, and model serving.</p>
 
-<!--
-<h2>Sometimes I write about an assortment of topics</h2>
-<ul>
-<li>Apr 2026: <a href="#">How to figure out what you want to do</a> - notes from reading cal newport
-<li>Apr 2026: <a href="#">Efficient Decode Attention</a>  
-</ul>
---!>
+<p>I've worked on edge systems across drone autonomy, rocket engine data acquisition, and AI accelerator firmware, and I'm currently writing Rust systems software as a SWE intern at Tesla.</p>
 
-
-<h2>Some things I've built
+<h2>
+Some things I've built
 <iframe id="tetra-frame" src="tetrahedron.html" width="0" height="0" frameborder="0" scrolling="no" title="spinning 3-faced tetrahedron"></iframe>
 <script>
 window.addEventListener('message', function (e) {
@@ -61,62 +69,84 @@ window.addEventListener('message', function (e) {
   }
 });
 </script>
-
 </h2>
+
 <p>Drag around this tetrahedron. Try to count the number of faces.</p>
+
 <ul>
 
-<!--<li>The night before my parallel computing final, I couldn't stop wondering
-what a <a href="tetrahedron.html">3-faced tetrahedron</a> looks like.
-First thing I did after was make it. (drag it to rotate)
---!>
-
-
-<li><a href="decode_attention.pdf">Efficient Decode Attention</a>: A CUDA implementation of Flash-Decoding and paged KV cache memory management
-<li><a href="cka.pdf">Representational Regularization for Diverse LLM Ensembles</a>: Improved LLM ensemble diversity and performance with CKA penality + router with at negligible additional inference cost.
-<li><a href="fpga.pdf">FPGA neural inference accelerator</a>: low latency, fixed-point arithmetic, LUT activations, and quantized-aware training.
-<li><a href="https://murmurmatch.com">MurmurMatch</a>: College social platform with 55k users. Used by 51% of Dartmouth and 27% of Stanford.
-<li><a href="#">Room Radar</a> iot devices to detect human presence via radar
-<li><a href="https://github.com/emaanh/classfinder">Empty Classroom Finder</a> A tool to quickly check for available classrooms on campus @ USC.
-<li><a href="https://github.com/emaanh/jonesspeak">JonesSpeak v3.1</a> Achieved state-of-the-art compression on natural language text using transformers + arithmetic coders
-<li><a href="https://github.com/emaanh/NeuralEvolution">Neural Evolution</a> Genetic algorthim implementation 
-<li><a href="https://github.com/emaanh/BlitzGo">BlitzGo</a> Maxwell and I built this game freshman year.<br>
-<!-- - "The rules of BlitzGo are so intuitive, concise, and logical that if intelligent life forms exist elsewhere in the universe, they almost certainly play it" <br>
-- "A divided army is half as strong"
- <li>Banana Artic Shipping Company: Connecting frozen waters to global supply chains. Based out of <a href="https://en.wikipedia.org/wiki/Diomede,_Alaska">Diomede, Alaska </a>.
-</ul>--!>
+<li><a href="decode_attention.pdf">Efficient Decode Attention</a>: CUDA implementation of Flash-Decoding and paged KV-cache memory management.</li>
+<li><a href="cka.pdf">Representational Regularization for Diverse LLM Ensembles</a>: improved LLM ensemble diversity and performance at negligible additional inference cost.</li>
+<li><a href="fpga.pdf">FPGA neural inference accelerator</a>: low-latency fixed-point arithmetic, LUT activations, and quantization-aware training.</li>
+<li><a href="https://murmurmatch.com">MurmurMatch</a>: college social platform with 56k+ users, used by roughly 1/2 of Dartmouth and 1/3 of Stanford.</li>
+<li><a href="https://emaanheidari.com/shuffle-speak">ShuffleSpeak (JonesSpeak v4.2)</a>: data compression for physical, private communication with transformers + arithmetic coding</li>
+<li><a href="https://docs.google.com/presentation/d/1klZvHq6K829ezVN0dDykqpbuYAbzB2iiWQM5M1Kj5PE">Room Radar</a>: IoT devices to detect human presence via radar.</li>
+<li><a href="https://github.com/emaanh/classfinder">Empty Classroom Finder</a>: find available classrooms on campus at USC.</li>
+<li><a href="https://github.com/emaanh/NeuralEvolution">Neural Evolution</a>: genetic algorithm implementation.</li>
+<li><a href="https://github.com/emaanh/blitzvision-openspiel">BlitzVision v2 for BlitzGo</a>: </li>
 
 <!--
-<p> Tournament Videos </p>
-<iframe width="560" height="315" 
+<li>"The rules of BlitzGo are so intuitive, concise, and logical that if intelligent life forms exist elsewhere in the universe, they almost certainly play it."</li>
+<li>"A divided army is half as strong."</li>
+<li>Banana Arctic Shipping Company: connecting frozen waters to global supply chains. Based out of <a href="https://en.wikipedia.org/wiki/Diomede,_Alaska">Diomede, Alaska</a>.</li>
+-->
+</ul>
+
+<!--
+<p>Tournament Videos</p>
+<iframe width="560" height="315"
   src="https://www.youtube.com/embed/UfRQ33Az0Ec"
-  frameborder="0" 
+  frameborder="0"
   allowfullscreen>
 </iframe>
-</ul>
---!>
+-->
 
-</ul>
-
-<h2>Work experience</h2>
+<h2>Experience</h2>
 <ul>
-<li><a href="https://www.tesla.com/">Tesla</a>:  incoming SWE intern, Energy (Summer 2026)
-<li><a href="https://usclpl.com/">USC Liquid Propulsion Lab</a>: C++ data acquisition for a liquid bipropellant engine + feed system 
-<li><a href="https://sifly.co/">SiFly</a>: drone autonomy systems, PX4 failsafes, simulation framework
-<li><a href="https://www.tandemlaunch.com/">TandemLaunch</a>: firmware for an analog AI accelerator
+<li><a href="https://www.tesla.com/">Tesla</a>: SWE intern, Energy systems software. (Rust, Go)</li>
+<li><a href="https://usclpl.com/">USC Liquid Propulsion Lab</a>: data acquisition and controls for a liquid bipropellant engine + feed system. (C++)</li>
+<li><a href="https://sifly.co/">SiFly</a>: drone autonomy systems, simulation framework. (Python, C++)</li>
+<li><a href="https://www.tandemlaunch.com/">TandemLaunch</a>: analog AI accelerator infra. (Python, C++)</li>
 </ul>
 
-<h2> Random </h2>
+<h2>Random</h2>
+
 <h3>Things I like</h3>
-- card/board games, roller coasters, non-euclidean geometry, ocean, fire, hiking, reading, thinking 
+<p>Card/board games, roller coasters, non-Euclidean geometry, the ocean, fire, hiking, reading, and thinking.</p>
+<div style="text-align:center;">
+<img src="imgs/all_about_me.png" width="350" alt="all about me worksheet" style="display:block; margin: 0 auto 4px;">
+<em>still mostly accurate</em>
+</div>
 
-<h3>Favorite Quotes</h3>
-- "All of humanity's problems stem from man's inability to sit quietly in a room alone." -Blaise Pascal <br>
-- "Premature optimization is the root of all evil" - Donald Knuth <br>
-- "Be so good they can't ignore you" - Steve Martin <br>
+<h3>Quotes I like</h3>
+<ul>
+<li>"I've suffered a great many catastrophes in my life. Most of them never happened." - Mark Twain</li>
+<li>"If I have seen further it is by standing on the shoulders of giants." - Isaac Newton</li>
+<li>"I have not failed. I've just found 10,000 ways that won't work." - Thomas Edison</li>
+<li>"Not all those who wander are lost." - J.R.R. Tolkien</li>
+<li>"If the human brain were so simple that we could understand it, we would be so simple that we couldn't." - Emerson M. Pugh</li>
+<li>"Every man carries the whole form of the human condition within him." - Montaigne</li>
+<li>"What I cannot create, I do not understand." - Richard Feynman</li>
+<li>"Nature uses only the longest threads to weave her patterns, so each small piece of her fabric reveals the organization of the entire tapestry." - Richard Feynman</li>
+<li>"The details are not the details. They make the design." - Charles Eames</li>
+<li>"Premature optimization is the root of all evil." - Donald Knuth</li>
+<li>"Be so good they can't ignore you." - Steve Martin</li>
+<li>"If you can't explain it to a six year old, you don't understand it yourself." - Albert Einstein</li>
+<li>"Your soul takes on the color of your thoughts." - Marcus Aurelius</li>
+<li>"We can be knowledgeable with other men's knowledge, but we cannot be wise with other men's wisdom." - Montaigne</li>
+<li>"A candle never loses any of its light while lighting up another candle." - Rumi</li>
+<li>"The most incomprehensible thing about the world is that it is at all comprehensible." - Albert Einstein</li>
+<li>"I can calculate the motion of heavenly bodies but not the madness of people." - Isaac Newton</li>
+<li>"If people do not believe that mathematics is simple, it is only because they do not realize how complicated life is." - John von Neumann</li>
+<li>"All of humanity's problems stem from man's inability to sit quietly in a room alone." - Blaise Pascal</li>
+<li>"What was scattered gathers. What was gathered blows away." - Heraclitus</li>
+<li>"The art of knowing is knowing what to ignore." - Rumi</li>
+<li>"I have had my results for a long time: but I do not yet know how I am to arrive at them." - Carl Friedrich Gauss</li>
+<li>"I do not think there is any thrill that can go through the human heart like that felt by the inventor as he sees some creation of the brain unfolding to success." - Nikola Tesla</li>
+</ul>
 
+<em>Last fiddled: June 2026.</em>
 
-<hr>
-<em>Last fiddled: May 2026.</em>
 </body>
-</HTML>
+</html>
+
