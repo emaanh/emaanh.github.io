@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Emaan Heidari &ndash; Projects</title>
+    <meta
+      name="description"
+      content="Projects in GPU kernels, machine learning, FPGA hardware, embedded systems, compression, and the web."
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="layout-md site-header">
+      <h1 class="site-title">
+        <a href="/">Emaan Heidari</a>
+        <span class="page-title"><span class="dash">&mdash;</span> Projects</span>
+      </h1>
+      <nav class="site-nav">
+        <a href="/">home</a>
+        <a href="/projects.html" aria-current="page">projects</a>
+        <a href="/random.html">random</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="layout-md section">
+        <h2 class="heading2">Some things I've built</h2>
+        <p class="prose tetra-line">
+          <iframe
+            class="tetra"
+            src="/tetrahedron.html"
+            scrolling="no"
+            title="Spinning three-faced tetrahedron"
+          ></iframe>
+          <span>Drag this tetrahedron. Try to count the number of faces.</span>
+        </p>
+      </section>
+
+      <section class="project" id="decode-attention">
+        <div class="layout-lg">
+          <h3 class="project-title">Efficient Decode Attention</h3>
+          <div class="pills">
+            <div class="pill">CUDA</div>
+            <div class="pill">C++20</div>
+            <div class="pill">Google Test</div>
+            <div class="pill">Google Benchmark</div>
+            <div class="pill">Nsight Systems</div>
+            <div class="pill">Nsight Compute</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Flash-Decoding and paged KV-cache memory management, written in CUDA.</p>
+              <div class="project-body">
+              <p>
+                A from-scratch CUDA build of the two pieces that dominate LLM decode: a split-K
+                flash-decode attention kernel and a paged KV-cache manager, profiled on an NVIDIA
+                A40.
+              </p>
+              <p>
+                Parallelizing over the token dimension instead of the softmax boundary took the
+                kernel from 17 to 477 Gi/s, a 28&times; speedup at long context. Paged allocation
+                fit 4 to 8&times; more concurrent sequences by killing fragmentation, at a flat
+                1.8&times; throughput cost that page size never changes.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="/decode_attention.pdf">Writeup</a>,
+                  <a class="link" href="https://github.com/emaanh/paged-attention">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/decode-attention.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/decode-attention.jpg"
+                  alt="Efficient Decode Attention &mdash; project screenshot"
+                  width="1027"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="murmurmatch">
+        <div class="layout-lg">
+          <h3 class="project-title">MurmurMatch</h3>
+          <div class="pills">
+            <div class="pill">React</div>
+            <div class="pill">FastAPI</div>
+            <div class="pill">PostgreSQL</div>
+            <div class="pill">GCP</div>
+            <div class="pill">Nginx</div>
+            <div class="pill">Stripe</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">College social platform scaled to 56,000+ students.</p>
+              <div class="project-body">
+              <p>
+                Built with my friend Maxwell and grown to 56,000+ users with $0 spent on
+                marketing. Used by &frac12; of Dartmouth, &frac13; of Brown, &frac13; of
+                Stanford, and &frac14; of Princeton students, with 500+ on a $7.99/week
+                subscription.
+              </p>
+              <p>
+                Murmur is a digital-postcard app for campuses. Students send anonymous
+                superlatives to their peers, and both identities are revealed once the recipient
+                sends one back. A second format, Chat Sparks, turns hot takes into conversation
+                openers, and because every recipient is nudged to send their own, the whole thing
+                spreads through a viral loop.
+              </p>
+              <p>
+                Running on load-balanced GCP infrastructure with autoscaling managed instance
+                groups to keep up with demand.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://murmurmatch.com">Website</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/murmurmatch.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/murmurmatch.jpg"
+                  alt="MurmurMatch &mdash; project screenshot"
+                  width="770"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="fpga">
+        <div class="layout-lg">
+          <h3 class="project-title">FPGA Neural Inference Accelerator</h3>
+          <div class="pills">
+            <div class="pill">FPGA</div>
+            <div class="pill">Hardware</div>
+            <div class="pill">Quantization</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Low-latency neural inference in fixed-point arithmetic.</p>
+              <div class="project-body">
+              <p>
+                Fixed-point arithmetic, activation functions baked into lookup tables, and
+                quantization-aware training so the network survives the move off floating
+                point.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="/fpga.pdf">Writeup</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/fpga.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/fpga.jpg"
+                  alt="FPGA Neural Inference Accelerator &mdash; project screenshot"
+                  width="1171"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="cka">
+        <div class="layout-lg">
+          <h3 class="project-title">Representational Regularization for Diverse LLM Ensembles</h3>
+          <div class="pills">
+            <div class="pill">Machine Learning</div>
+            <div class="pill">LLMs</div>
+            <div class="pill">Research</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Improved LLM ensemble diversity and performance at negligible additional inference cost.</p>
+              <div class="project-body">
+              <p>
+                Ensembles only help when their members actually disagree. This regularizes the
+                models' internal representations apart during training, so the diversity is
+                already there at inference time instead of being bought with extra compute.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="/cka.pdf">Paper</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/cka.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/cka.jpg"
+                  alt="Representational Regularization for Diverse LLM Ensembles &mdash; project screenshot"
+                  width="834"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="shufflespeak">
+        <div class="layout-lg">
+          <h3 class="project-title">ShuffleSpeak (JonesSpeak v4.2)</h3>
+          <div class="pills">
+            <div class="pill">Compression</div>
+            <div class="pill">Transformers</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Data compression for physical, private communication.</p>
+              <div class="project-body">
+              <p>
+                A transformer as the probability model, arithmetic coding as the entropy coder
+                &mdash; squeezing a message down far enough to hand it to someone.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://emaanheidari.com/shuffle-speak">Try it</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/shufflespeak.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/shufflespeak.jpg"
+                  alt="ShuffleSpeak (JonesSpeak v4.2) &mdash; project screenshot"
+                  width="1037"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="blitzvision">
+        <div class="layout-lg">
+          <h3 class="project-title">BlitzVision v2 for BlitzGo</h3>
+          <div class="pills">
+            <div class="pill">Self-Play</div>
+            <div class="pill">Reinforcement Learning</div>
+            <div class="pill">OpenSpiel</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">What superhuman play looks like in a game we invented.</p>
+              <div class="project-body">
+              <p>
+                Maxwell and I created BlitzGo, a game whose simple rules give rise to profound
+                strategic depth. BlitzVision explores what superhuman play looks like by
+                training AI with self-play.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://github.com/emaanh/blitzvision-openspiel">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/blitzvision.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/blitzvision.jpg"
+                  alt="BlitzVision v2 for BlitzGo &mdash; project screenshot"
+                  width="960"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="room-radar">
+        <div class="layout-lg">
+          <h3 class="project-title">Room Radar</h3>
+          <div class="pills">
+            <div class="pill">IoT</div>
+            <div class="pill">Embedded</div>
+            <div class="pill">Radar</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">IoT devices to detect human presence via radar.</p>
+              <div class="project-body">
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://docs.google.com/presentation/d/1klZvHq6K829ezVN0dDykqpbuYAbzB2iiWQM5M1Kj5PE">Slides</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/room-radar.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/room-radar.jpg"
+                  alt="Room Radar &mdash; project screenshot"
+                  width="619"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="classfinder">
+        <div class="layout-lg">
+          <h3 class="project-title">Empty Classroom Finder</h3>
+          <div class="pills">
+            <div class="pill">Web</div>
+            <div class="pill">USC</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Find available classrooms on campus at USC.</p>
+              <div class="project-body">
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://github.com/emaanh/classfinder">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/classfinder.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/classfinder.jpg"
+                  alt="Empty Classroom Finder &mdash; project screenshot"
+                  width="1200"
+                  height="481"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="neural-evolution">
+        <div class="layout-lg">
+          <h3 class="project-title">Neural Evolution</h3>
+          <div class="pills">
+            <div class="pill">Python</div>
+            <div class="pill">Genetic Algorithms</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">A genetic algorithm implementation.</p>
+              <div class="project-body">
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://github.com/emaanh/NeuralEvolution">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/neural-evolution.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/neural-evolution.jpg"
+                  alt="Neural Evolution &mdash; project screenshot"
+                  width="1200"
+                  height="509"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="duel">
+        <div class="layout-lg">
+          <h3 class="project-title">Duel</h3>
+          <div class="pills">
+            <div class="pill">Web</div>
+            <div class="pill">Ranking</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Rank anything with 1v1 duels.</p>
+              <div class="project-body">
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://github.com/emaanh/duel">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <a href="/assets/img/projects/duel.jpg">
+                <img
+                  class="shot-rounded shot-bordered"
+                  src="/assets/img/projects/duel.jpg"
+                  alt="Duel &mdash; project screenshot"
+                  width="1164"
+                  height="750"
+                />
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="layout-md site-footer">
+      <div class="footer-row">
+        <span>LinkedIn</span>
+        <hr />
+        <a class="link" href="https://linkedin.com/in/emaanheidari">@emaanheidari</a>
+      </div>
+      <div class="footer-row">
+        <span>GitHub</span>
+        <hr />
+        <a class="link" href="https://github.com/emaanh">@emaanh</a>
+      </div>
+      <div class="footer-row">
+        <span>Email</span>
+        <hr />
+        <a class="link" href="mailto:eheidari@usc.edu">eheidari@usc.edu</a>
+      </div>
+    </footer>
+  </body>
+</html>

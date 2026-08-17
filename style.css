@@ -1,0 +1,730 @@
+/* =========================================================================
+   Design tokens
+   ========================================================================= */
+
+@font-face {
+  font-family: Newsreader;
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./assets/fonts/newsreader-latin-400-italic.woff2) format("woff2"),
+       url(./assets/fonts/newsreader-all-400-italic.woff) format("woff");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215,
+    U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: Newsreader;
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./assets/fonts/newsreader-latin-ext-400-italic.woff2) format("woff2"),
+       url(./assets/fonts/newsreader-all-400-italic.woff) format("woff");
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB,
+    U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: Newsreader;
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url(./assets/fonts/newsreader-vietnamese-400-italic.woff2) format("woff2"),
+       url(./assets/fonts/newsreader-all-400-italic.woff) format("woff");
+  unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1,
+    U+01AF-01B0, U+1EA0-1EF9, U+20AB;
+}
+
+:root {
+  /* Type families */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: Newsreader, ui-serif, Georgia, Cambria, "Times New Roman", Times,
+    serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+
+  /* Neutral scale */
+  --c-black: #000;
+  --c-ink: #404040; /* body copy */
+  --c-secondary: #737373; /* dates, labels, stats */
+  --c-muted: #a3a3a3; /* de-emphasised words, markers, arrows */
+  --c-rule: #d4d4d4; /* dotted leader rules */
+  --c-line: #e5e5e5; /* borders, selection, pill hover */
+  --c-hairline: #e5e7eb; /* image hairline border */
+  --c-surface: #f5f5f5; /* pills, hover fills */
+
+  /* Containers */
+  --container-md: 768px;
+  --container-lg: 1152px;
+  --gutter: 1rem;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --gutter: 1.5rem;
+  }
+}
+
+/* =========================================================================
+   Reset
+   ========================================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  border: 0 solid var(--c-hairline);
+}
+
+html {
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+  tab-size: 4;
+  font-family: var(--font-sans);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Cross-document page transitions: a fast crossfade between pages. Pure CSS,
+   progressively enhanced — browsers without view transitions (e.g. Firefox)
+   fall back to an instant navigation. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 120ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none;
+  }
+}
+
+body {
+  margin: 0;
+  line-height: inherit;
+  color: var(--c-ink);
+  padding: 3rem 0;
+}
+
+@media (min-width: 640px) {
+  body {
+    padding: 6rem 0;
+  }
+}
+
+@media (min-width: 768px) {
+  body {
+    padding: 8rem 0;
+  }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+blockquote,
+dl,
+dd,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+hr,
+figure,
+p,
+pre {
+  margin: 0;
+}
+
+ol,
+ul,
+menu {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: inherit;
+}
+
+b,
+strong {
+  font-weight: bolder;
+}
+
+small {
+  font-size: 80%;
+}
+
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+sub {
+  bottom: -0.25em;
+}
+sup {
+  top: -0.5em;
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 1em;
+}
+
+hr {
+  height: 0;
+  color: inherit;
+  border-top-width: 1px;
+  border-color: var(--c-line);
+}
+
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  vertical-align: middle;
+}
+
+img,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+::selection {
+  background-color: var(--c-line);
+}
+
+/* =========================================================================
+   Containers
+   ========================================================================= */
+
+.layout-md {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: var(--container-md);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+/* The wide measure, used by project entries so the screenshot column fits. */
+.layout-lg {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: var(--container-lg);
+  padding-left: var(--gutter);
+  padding-right: var(--gutter);
+}
+
+/* A page section inside the narrow column. */
+.section {
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+/* =========================================================================
+   Links
+   ========================================================================= */
+
+/* One colour transition, shared by every element with a hover state. */
+.link,
+.site-nav a,
+.project-pair,
+.post {
+  transition-property: color, background-color, border-color, text-decoration-color,
+    fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 0.15s;
+}
+
+.link {
+  text-decoration-line: underline;
+  text-decoration-color: var(--c-muted);
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: var(--c-black);
+  text-decoration-color: var(--c-black);
+}
+
+/* Inline "open in new tab" glyph that trails a label. */
+.arrow {
+  display: inline;
+  color: var(--c-muted);
+}
+
+/* =========================================================================
+   Header + nav
+   ========================================================================= */
+
+.site-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.site-title {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  color: var(--c-black);
+}
+
+.page-title {
+  font-weight: 300;
+}
+
+.page-title .dash {
+  color: var(--c-muted);
+}
+
+.site-nav {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding-top: 0.125rem;
+  padding-bottom: 0.125rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: var(--c-secondary);
+}
+
+.site-nav > * + * {
+  margin-left: 1.5rem;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--c-black);
+}
+
+@media (max-width: 580px) {
+  .page-title {
+    display: block;
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+  .page-title .dash {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-nav {
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  .site-nav > * + * {
+    margin-left: 0;
+  }
+}
+
+/* =========================================================================
+   Headings + prose
+   ========================================================================= */
+
+.heading2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  color: var(--c-black);
+}
+
+.prose {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
+
+.prose + .prose {
+  margin-top: 1rem;
+}
+
+/* Serif italic, used for bylines and blurbs. Plain <em> stays sans italic. */
+.serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+/* Serif italic accent set slightly larger than the sans text it sits in. */
+.accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 110%;
+  line-height: 100%;
+}
+
+/* =========================================================================
+   Home — body stack
+   ========================================================================= */
+
+.stack > * + * {
+  margin-top: 3.5rem;
+}
+
+.copy > * + * {
+  margin-top: 1.25rem;
+}
+
+/* =========================================================================
+   Two-column rows (home lists)
+   ========================================================================= */
+
+.project-pair {
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+  display: grid;
+  row-gap: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.project-pair:hover {
+  background-color: var(--c-surface);
+}
+
+@media (min-width: 640px) {
+  .project-pair {
+    grid-template-columns: 1fr 2fr;
+  }
+}
+
+.project-pair-name {
+  color: var(--c-black);
+  font-weight: 500;
+}
+
+.project-pair aside {
+  margin-top: 0.125rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--c-secondary);
+}
+
+/* =========================================================================
+   Footer
+   ========================================================================= */
+
+.site-footer {
+  margin-top: 5rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-row {
+  display: flex;
+  align-items: center;
+}
+
+.footer-row > * + * {
+  margin-left: 1rem;
+}
+
+.footer-row span {
+  color: var(--c-secondary);
+}
+
+.footer-row hr {
+  margin-top: 0.125rem;
+  width: 100%;
+  border-style: dotted;
+  border-color: var(--c-rule);
+}
+
+
+/* =========================================================================
+   Colophon
+   ========================================================================= */
+
+.colophon {
+  margin-top: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--c-muted);
+}
+
+/* =========================================================================
+   Home — portrait + intro
+   ========================================================================= */
+
+/* Same 1fr/2fr split as the project rows, so the portrait column lines up
+   with the names below it. */
+.intro {
+  display: grid;
+  row-gap: 1.5rem;
+  margin-bottom: 3.5rem;
+}
+
+@media (min-width: 640px) {
+  .intro {
+    grid-template-columns: 1fr 2fr;
+    column-gap: 2rem;
+  }
+}
+
+.portrait img {
+  width: 100%;
+  max-width: 240px;
+  border-radius: 0.375rem;
+}
+
+/* =========================================================================
+   Two-column rows (selected work, experience)
+   ========================================================================= */
+
+.pair-list {
+  line-height: 1.375;
+}
+
+.pair-list > * + * {
+  margin-top: 1rem;
+}
+
+.pair-list-label {
+  padding-bottom: 0.5rem;
+}
+
+/* =========================================================================
+   Projects
+   ========================================================================= */
+
+.project {
+  padding-top: 2.5rem;
+  padding-bottom: 2.5rem;
+}
+
+.project-title {
+  color: var(--c-black);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 0.25rem;
+}
+
+.pill {
+  display: flex;
+  align-items: center;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  margin-right: 0.375rem;
+  margin-bottom: 0.5rem;
+  border-radius: 9999px;
+  background-color: var(--c-surface);
+  padding: 1px 0.375rem;
+}
+
+.project-tagline {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 300;
+  margin-bottom: 0.75rem;
+}
+
+.project-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .project-grid {
+    gap: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .project-grid {
+    gap: 3rem;
+  }
+}
+
+.project-main,
+.project-aside {
+  grid-column: span 3 / span 3;
+}
+
+@media (min-width: 768px) {
+  .project-main {
+    grid-column: span 2 / span 2;
+  }
+  .project-aside {
+    grid-column: span 1 / span 1;
+  }
+}
+
+.project-body p {
+  margin-bottom: 1rem;
+}
+
+.project-body strong {
+  font-weight: 600;
+}
+
+.project-body code {
+  font-size: 95%;
+}
+
+/* Screenshot treatments. Pick one per image, or neither: rounded when the shot
+   has no frame of its own, bordered when it's light to the edge. */
+.shot-rounded {
+  border-radius: 0.375rem;
+}
+
+.shot-bordered {
+  border-width: 1px;
+}
+
+/* The tetrahedron easter egg, sized to the frame its canvas reports. */
+.tetra-line {
+  display: flex;
+  align-items: center;
+}
+
+.tetra {
+  flex: 0 0 auto;
+  width: 58px;
+  height: 58px;
+  margin-left: -0.5rem;
+  margin-right: 0.5rem;
+  border: 0;
+}
+
+/* =========================================================================
+   Random — figure + quotes
+   ========================================================================= */
+
+.figure {
+  margin: 2.5rem 0;
+  text-align: center;
+}
+
+.figure img {
+  max-width: min(350px, 100%);
+  margin: 0 auto 0.25rem;
+}
+
+.figure figcaption {
+  font-family: var(--font-serif);
+  font-style: italic;
+  color: var(--c-secondary);
+}
+
+.quote-list {
+  line-height: 1.375;
+}
+
+.quote-list > * + * {
+  margin-top: 1rem;
+}
+
+.quote-list li .who {
+  display: block;
+  margin-top: 0.125rem;
+  color: var(--c-muted);
+}
+
+/* =========================================================================
+   Writing
+   ========================================================================= */
+
+.post-list {
+  display: grid;
+  row-gap: 1rem;
+}
+
+.post {
+  display: block;
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.post:hover {
+  background-color: var(--c-surface);
+}
+
+.post-head {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.375rem;
+}
+
+.post-title {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  color: var(--c-black);
+}
+
+.post-date {
+  margin-bottom: 0.125rem;
+  color: var(--c-secondary);
+}
+
+.post-blurb {
+  font-size: 1.125rem;
+  line-height: 1.375;
+  font-family: var(--font-serif);
+  font-style: italic;
+}
+
+@media (min-width: 640px) {
+  .post-head {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  .post-date {
+    margin-left: auto;
+  }
+}
+
+/* Placeholder rows, until the real thing exists. */
+.is-placeholder {
+  color: var(--c-muted);
+}
+
+.is-placeholder .post-title,
+.is-placeholder .post-date {
+  color: var(--c-muted);
+}

@@ -1,146 +1,184 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title>Emaan Heidari</title>
-<style>
-body {
-  max-width: 900px;
-  margin: 32px auto;
-  padding: 0 20px;
-  font-family: Georgia, "Times New Roman", serif;
-  line-height: 1.45;
-}
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Emaan Heidari</title>
+    <meta
+      name="description"
+      content="Systems and ML. I build high-throughput, low-latency systems software."
+    />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <header class="layout-md site-header">
+      <h1 class="site-title"><a href="/">Emaan Heidari</a></h1>
+      <nav class="site-nav">
+        <a href="/" aria-current="page">home</a>
+        <a href="/projects.html">projects</a>
+        <a href="/random.html">random</a>
+      </nav>
+    </header>
 
-#tetra-frame {
-  position: relative;
-  left: 10px;
-  top: 20px;
-  z-index: 1;
-  pointer-events: auto;
-}
+    <main>
+      <div class="layout-md intro">
+        <div class="portrait">
+          <img
+            src="/assets/img/emaan.jpg"
+            alt="Portrait photograph of Emaan Heidari"
+            width="897"
+            height="800"
+          />
+        </div>
+        <div class="prose copy">
+          <p>
+            I'm 20 and studying computer engineering + CS at USC. I build
+            high-throughput + low-latency systems software.
+          </p>
+          <p>
+            I've worked on edge systems across drone autonomy, rocket engine data
+            acquisition, and AI accelerator firmware, and I'm currently writing Rust
+            systems software as a SWE intern at
+            <a class="link" href="https://www.tesla.com/">Tesla</a>.
+          </p>
+        </div>
+      </div>
 
-img {
-  margin-bottom: 12px;
-}
+      <div class="layout-md prose stack">
+        <div class="pair-list">
+          <p class="pair-list-label">Some things I've built:</p>
 
-li {
-  margin: 3px 0;
-}
-</style>
-</head>
+          <a class="project-pair" href="/projects.html#decode-attention">
+            <div class="project-pair-name">
+              Efficient Decode Attention
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>Flash-Decoding and paged KV-cache memory management, in CUDA</p>
+            </div>
+          </a>
 
-<body bgcolor="#FFFFFF" text="#000000" link="#0000FF" vlink="#330088" alink="#FF0044">
+          <a class="project-pair" href="/projects.html#murmurmatch">
+            <div class="project-pair-name">
+              MurmurMatch
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>college social platform</p>
+              <aside>56k+ users, about half of Dartmouth and a third of Stanford</aside>
+            </div>
+          </a>
 
-<h1>Emaan Heidari Homepage &copy;</h1>
+          <a class="project-pair" href="/projects.html#fpga">
+            <div class="project-pair-name">
+              FPGA Accelerator
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>low-latency neural inference in fixed-point arithmetic</p>
+            </div>
+          </a>
 
-<img align="left" width="175" hspace="30" src="imgs/me.jpg" alt="Emaan Heidari picture">
+          <a class="project-pair" href="/projects.html#cka">
+            <div class="project-pair-name">
+              Diverse LLM Ensembles
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>representational regularization for better ensembles</p>
+              <aside>no additional inference cost</aside>
+            </div>
+          </a>
 
-<ul>
-<li>Emaan Heidari</li>
-<li>Systems &amp; ML</li>
-<li>Bay Area, CA</li>
-<li>CE + CS @ <a href="https://www.usc.edu/">USC</a></li>
-<li><a href="mailto:eheidari@usc.edu">eheidari@usc.edu</a></li>
-<li><a href="https://github.com/emaanh">github.com/emaanh</a></li>
-<li><a href="https://linkedin.com/in/emaanheidari">linkedin.com/in/emaanheidari</a></li>
-</ul>
+          <a class="project-pair" href="/projects.html#shufflespeak">
+            <div class="project-pair-name">
+              ShuffleSpeak
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>compression for physical, private communication</p>
+              <aside>transformers + arithmetic coding</aside>
+            </div>
+          </a>
 
-<br clear="left">
-<hr>
+          <a class="project-pair" href="/projects.html#blitzvision">
+            <div class="project-pair-name">
+              BlitzVision
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>self-play agents for BlitzGo, a game we invented</p>
+            </div>
+          </a>
+        </div>
 
-<h2>About</h2>
+        <div class="pair-list">
+          <p class="pair-list-label">Where I've worked:</p>
 
-<p>I'm 20 and studying computer engineering + CS at USC. I build high-throughput + low-latency systems software.</p>
+          <a class="project-pair" href="https://www.tesla.com/">
+            <div class="project-pair-name">
+              Tesla
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>systems software for the Powerwall 3</p>
+              <aside>Rust, Go</aside>
+            </div>
+          </a>
 
+          <a class="project-pair" href="https://usclpl.com/">
+            <div class="project-pair-name">
+              USC Propulsion Lab
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>data acquisition and controls for a liquid bipropellant engine</p>
+              <aside>C++</aside>
+            </div>
+          </a>
 
-<p>I've worked on edge systems across drone autonomy, rocket engine data acquisition, and AI accelerator firmware, and I'm currently writing Rust systems software as a SWE intern at Tesla.</p>
+          <a class="project-pair" href="https://sifly.co/">
+            <div class="project-pair-name">
+              SiFly
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>drone autonomy systems, simulation framework</p>
+              <aside>Python, C++</aside>
+            </div>
+          </a>
 
-<h2>
-Some things I've built
-<iframe id="tetra-frame" src="tetrahedron.html" width="0" height="0" frameborder="0" scrolling="no" title="spinning 3-faced tetrahedron"></iframe>
-<script>
-window.addEventListener('message', function (e) {
-  if (e.data && e.data.type === 'tetra-size') {
-    var f = document.getElementById('tetra-frame');
-    f.width = e.data.size;
-    f.height = e.data.size;
-  }
-});
-</script>
-</h2>
+          <a class="project-pair" href="https://www.tandemlaunch.com/">
+            <div class="project-pair-name">
+              TandemLaunch
+              <svg class="arrow" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7" /><polyline points="7 7 17 7 17 17" /></svg>
+            </div>
+            <div>
+              <p>analog AI accelerator infrastructure</p>
+              <aside>Python, C++</aside>
+            </div>
+          </a>
+        </div>
+      </div>
+    </main>
 
-<p>Drag around this tetrahedron. Try to count the number of faces.</p>
-
-<ul>
-
-<li><a href="decode_attention.pdf">Efficient Decode Attention</a>: CUDA implementation of Flash-Decoding and paged KV-cache memory management.</li>
-<li><a href="cka.pdf">Representational Regularization for Diverse LLM Ensembles</a>: improved LLM ensemble diversity and performance at negligible additional inference cost.</li>
-<li><a href="fpga.pdf">FPGA neural inference accelerator</a>: low-latency fixed-point arithmetic, LUT activations, and quantization-aware training.</li>
-<li><a href="https://murmurmatch.com">MurmurMatch</a>: college social platform with 56k+ users, used by roughly 1/2 of Dartmouth and 1/3 of Stanford.</li>
-<li><a href="https://emaanheidari.com/shuffle-speak">ShuffleSpeak (JonesSpeak v4.2)</a>: data compression for physical, private communication with transformers + arithmetic coding</li>
-<li><a href="https://docs.google.com/presentation/d/1klZvHq6K829ezVN0dDykqpbuYAbzB2iiWQM5M1Kj5PE">Room Radar</a>: IoT devices to detect human presence via radar.</li>
-<li><a href="https://github.com/emaanh/classfinder">Empty Classroom Finder</a>: find available classrooms on campus at USC.</li>
-<li><a href="https://github.com/emaanh/NeuralEvolution">Neural Evolution</a>: genetic algorithm implementation.</li>
-<li><a href="https://github.com/emaanh/blitzvision-openspiel">BlitzVision v2 for BlitzGo</a>: Maxwell and I created BlitzGo, a game whose simple rules give rise to profound strategic depth. BlitzVision explores what superhuman play looks like by training AI with self-play.</li>
-<li><a href="https://github.com/emaanh/duel">Duel</a>: rank anything with 1v1 duels.</li>
-
-<!--
-<li>"The rules of BlitzGo are so intuitive, concise, and logical that if intelligent life forms exist elsewhere in the universe, they almost certainly play it."</li>
-<li>"A divided army is half as strong."</li>
-<li>Banana Arctic Shipping Company: connecting frozen waters to global supply chains. Based out of <a href="https://en.wikipedia.org/wiki/Diomede,_Alaska">Diomede, Alaska</a>.</li>
--->
-</ul>
-
-<h2>Experience</h2>
-<ul>
-<li><a href="https://www.tesla.com/">Tesla</a>: systems software for the Powerwall 3 to accelerate the world's transition to sustainable energy. (Rust, Go)</li>
-<li><a href="https://usclpl.com/">USC Liquid Propulsion Lab</a>: data acquisition and controls for a liquid bipropellant engine + feed system. (C++)</li>
-<li><a href="https://sifly.co/">SiFly</a>: drone autonomy systems, simulation framework. (Python, C++)</li>
-<li><a href="https://www.tandemlaunch.com/">TandemLaunch</a>: analog AI accelerator infra. (Python, C++)</li>
-</ul>
-
-<h2>Random</h2>
-
-<h3>Things I like</h3>
-<p>Card/board games, roller coasters, non-Euclidean geometry, the ocean, fire, hiking, reading, and thinking.</p>
-<div style="text-align:center;">
-<img src="imgs/all_about_me.png" width="350" alt="all about me worksheet" style="display:block; margin: 0 auto 4px;">
-<em>still mostly accurate</em>
-</div>
-
-<h3>Quotes I like</h3>
-<ul>
-<li>"I've suffered a great many catastrophes in my life. Most of them never happened." - Mark Twain</li>
-<li>"If I have seen further it is by standing on the shoulders of giants." - Isaac Newton</li>
-<li>"If the human brain were so simple that we could understand it, we would be so simple that we couldn't." - Emerson M. Pugh</li>
-<li>"Any sufficiently advanced technology is indistinguishable from magic." - Arthur Clarke</li>
-<li>"Every man carries the whole form of the human condition within him." - Montaigne</li>
-<li>"The rules of go are so elegant, organic, and rigorously logical that if intelligent life forms exist elsewhere in the universe, they almost certainly play go." - Edward Lasker</li>
-<li>“Do not be so open-minded that your brains fall out.”  - G.K. Chesterton</li>
-<li>"I do not think there is any thrill that can go through the human heart like that felt by the inventor as he sees some creation of the brain unfolding to success." - Nikola Tesla</li>
-<li>"I have not failed. I've just found 10,000 ways that won't work." - Thomas Edison</li>
-<li>"The only rules are the ones dictated by the laws of physics. Everything else is a recommendation." - Elon Musk</li>
-<li>"What I cannot create, I do not understand." - Richard Feynman</li>
-<li>"Nature uses only the longest threads to weave her patterns, so each small piece of her fabric reveals the organization of the entire tapestry." - Richard Feynman</li>
-<li>"The details are not the details. They make the design." - Charles Eames</li>
-<li>"Premature optimization is the root of all evil." - Donald Knuth</li>
-<li>"Be so good they can't ignore you." - Steve Martin</li>
-<li>"If you can't explain it to a six year old, you don't understand it yourself." - Albert Einstein</li>
-<li>"Your soul takes on the color of your thoughts." - Marcus Aurelius</li>
-<li>"We can be knowledgeable with other men's knowledge, but we cannot be wise with other men's wisdom." - Montaigne</li>
-<li>"A candle never loses any of its light while lighting up another candle." - Rumi</li>
-<li>"The most incomprehensible thing about the world is that it is at all comprehensible." - Albert Einstein</li>
-<li>"I can calculate the motion of heavenly bodies but not the madness of people." - Isaac Newton</li>
-<li>"If people do not believe that mathematics is simple, it is only because they do not realize how complicated life is." - John von Neumann</li>
-<li>"All of humanity's problems stem from man's inability to sit quietly in a room alone." - Blaise Pascal</li>
-<li>"What was scattered gathers. What was gathered blows away." - Heraclitus</li>
-<li>"The art of knowing is knowing what to ignore." - Rumi</li>
-<li>"I have had my results for a long time: but I do not yet know how I am to arrive at them." - Carl Friedrich Gauss</li>
-</ul>
-
-<em>Last fiddled: June 2026.</em>
-
-</body>
+    <footer class="layout-md site-footer">
+      <div class="footer-row">
+        <span>LinkedIn</span>
+        <hr />
+        <a class="link" href="https://linkedin.com/in/emaanheidari">@emaanheidari</a>
+      </div>
+      <div class="footer-row">
+        <span>GitHub</span>
+        <hr />
+        <a class="link" href="https://github.com/emaanh">@emaanh</a>
+      </div>
+      <div class="footer-row">
+        <span>Email</span>
+        <hr />
+        <a class="link" href="mailto:eheidari@usc.edu">eheidari@usc.edu</a>
+      </div>
+      <p class="colophon">Last fiddled: June 2026.</p>
+    </footer>
+  </body>
 </html>
-
