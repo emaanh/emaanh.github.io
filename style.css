@@ -616,18 +616,23 @@ video {
   border-width: 1px;
 }
 
-/* The tetrahedron easter egg, sized to the frame its canvas reports. */
-.tetra-line {
+/* Section heading with the tetrahedron easter egg pinned to its right. */
+.builds-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
+.builds-head .heading2 {
+  margin-bottom: 0;
+}
+
+/* The tetrahedron easter egg, sized to the frame its canvas reports. */
 .tetra {
   flex: 0 0 auto;
   width: 58px;
   height: 58px;
-  margin-left: -0.5rem;
-  margin-right: 0.5rem;
   border: 0;
 }
 
