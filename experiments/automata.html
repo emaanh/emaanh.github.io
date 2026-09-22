@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Automata — experiment</title>
+<link rel="stylesheet" href="./lab.css" />
+<style>
+  body { background: #f2f1ef; }
+  :root { --bg-strength: 0.45; }
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+
+<div class="veil"></div>
+
+<main class="overlay">
+  <h1>Emaan Heidari</h1>
+  <p class="tagline">
+    Computer engineering + CS at USC. I build <em>high-throughput,
+    low-latency</em> systems software.
+  </p>
+  <nav>
+    <a href="/">home</a>
+    <a href="/projects.html">projects</a>
+    <a href="/random.html">random</a>
+  </nav>
+</main>
+
+<div class="hud">
+  <span class="hud-name">cyclic automaton</span>
+  <span><b id="hud-states">—</b> states</span>
+  <span>gen <b id="hud-gen">0</b></span>
+  <span class="hud-hint">move to nucleate · scroll to change state count</span>
+  <a class="hud-back" href="./">all experiments</a>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* Cyclic cellular automaton (Griffeath's "cyclic spirals").
+     A cell in state s advances to s+1 (mod N) once THRESHOLD of its
+     neighbours have already reached s+1. From uniform noise it passes
+     through a turbulent phase, then winds into spiral waves that tile the
+     plane and keep turning indefinitely — no reseeding, no reset.
+
+     The neighbourhood is a Euclidean disc of radius RADIUS, so its shape
+     sets the shape of the wavefronts: r=1 is the four-cell von Neumann
+     cross and gives sharp diamond spirals (the default); r=3 is a 28-cell
+     disc and gives soft round ones. Which (n, r, t) settle into spirals
+     rather than permanent debris is a matter of looking, hence the URL
+     parameters.
+
+     High thresholds relative to the neighbourhood never nucleate: r=2,t=3
+     was still undifferentiated noise at generation 1000. */
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const hudStates = document.getElementById('hud-states');
+  const hudGen = document.getElementById('hud-gen');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Every knob is URL-tunable, because which corner of (states, radius,
+  // threshold) space gives spirals rather than permanent debris is decided
+  // by looking at it: ?n=14&r=3&t=2 for soft round waves
+  const Q = new URLSearchParams(location.search);
+  const num = (k, d, lo, hi) =>
+    Math.max(lo, Math.min(hi, parseInt(Q.get(k), 10) || d));
+
+  const CELL = num('cell', 6, 2, 24);
+  const RADIUS = num('r', 1, 1, 4);
+  const THRESHOLD = num('t', 1, 1, 12);
+  const STEPS_PER_SEC = num('fps', 26, 1, 120);
+  const WARMUP = num('warm', 320, 0, 4000);     // blocking; enough to reach spirals
+  const ORGANIZE = num('organize', 900, 0, 20000); // then fast-forward on-screen
+
+  // Disc offsets, centre excluded.
+  const OFF = [];
+  for (let dy = -RADIUS; dy <= RADIUS; dy++) {
+    for (let dx = -RADIUS; dx <= RADIUS; dx++) {
+      if (dx === 0 && dy === 0) continue;
+      if (dx * dx + dy * dy <= RADIUS * RADIUS) OFF.push([dx, dy]);
+    }
+  }
+
+  let states = num('n', 12, 3, 32);
+  let cols = 0, rows = 0, n = 0;
+  let cur, nxt;
+  let WX, WY;                // wrapped neighbour lookups, one row per offset
+  let rowOff;                // scratch: this row's base index per offset
+  let grid, gctx, img, buf32;
+  let palette = new Uint32Array(0);
+  let gen = 0;
+  let W = 0, H = 0;
+
+  function buildPalette() {
+    palette = new Uint32Array(states);
+    for (let s = 0; s < states; s++) {
+      const t = s / states;
+      // Cyclic by construction, so state N-1 meets state 0 with no seam.
+      // Deliberately low-contrast — this sits behind body copy.
+      const r = 0.80 + 0.15 * Math.cos(6.28318530718 * (t + 0.00));
+      const g = 0.80 + 0.14 * Math.cos(6.28318530718 * (t + 0.08));
+      const b = 0.82 + 0.13 * Math.cos(6.28318530718 * (t + 0.18));
+      const R = Math.max(0, Math.min(255, Math.round(r * 255)));
+      const G = Math.max(0, Math.min(255, Math.round(g * 255)));
+      const B = Math.max(0, Math.min(255, Math.round(b * 255)));
+      palette[s] = (255 << 24) | (B << 16) | (G << 8) | R;  // little-endian ABGR
+    }
+  }
+
+  function seed() {
+    // Uniform noise. Correlated seeds look tidier for a moment but freeze
+    // into large flat plates; white noise is what passes through the
+    // turbulent phase and comes out the other side as spirals.
+    for (let i = 0; i < n; i++) cur[i] = (Math.random() * states) | 0;
+  }
+
+  function allocate() {
+    cols = Math.max(16, Math.ceil(W / CELL));
+    rows = Math.max(16, Math.ceil(H / CELL));
+    n = cols * rows;
+
+    cur = new Uint8Array(n);
+    nxt = new Uint8Array(n);
+
+    // Torus wrapping, resolved once so the hot loop has no modulo in it.
+    WX = []; WY = [];
+    for (let k = 0; k < OFF.length; k++) {
+      const dx = OFF[k][0], dy = OFF[k][1];
+      const ax = new Int32Array(cols);
+      for (let x = 0; x < cols; x++) ax[x] = ((x + dx) % cols + cols) % cols;
+      WX.push(ax);
+      const ay = new Int32Array(rows);
+      for (let y = 0; y < rows; y++) ay[y] = (((y + dy) % rows + rows) % rows) * cols;
+      WY.push(ay);
+    }
+    rowOff = new Int32Array(OFF.length);
+
+    grid = document.createElement('canvas');
+    grid.width = cols;
+    grid.height = rows;
+    gctx = grid.getContext('2d');
+    img = gctx.createImageData(cols, rows);
+    buf32 = new Uint32Array(img.data.buffer);
+
+    seed();
+    gen = 0;
+  }
+
+  function step() {
+    const K = OFF.length;
+    for (let y = 0; y < rows; y++) {
+      const r0 = y * cols;
+      for (let k = 0; k < K; k++) rowOff[k] = WY[k][y];
+
+      for (let x = 0; x < cols; x++) {
+        const i = r0 + x;
+        const s = cur[i];
+        const want = s + 1 === states ? 0 : s + 1;
+
+        let hits = 0;
+        for (let k = 0; k < K; k++) {
+          if (cur[rowOff[k] + WX[k][x]] === want) {
+            if (++hits >= THRESHOLD) break;
+          }
+        }
+
+        nxt[i] = hits >= THRESHOLD ? want : s;
+      }
+    }
+    const t = cur; cur = nxt; nxt = t;
+    gen++;
+  }
+
+  function draw() {
+    for (let i = 0; i < n; i++) buf32[i] = palette[cur[i]];
+    gctx.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(grid, 0, 0, cols, rows, 0, 0, W, H);
+  }
+
+  /* --------------------------------------------------------------- input */
+
+  // A patch of random states is a defect in the wave field; fresh spirals
+  // unwind out of it over the next few dozen generations.
+  function stamp(cssX, cssY, radius) {
+    const cx = Math.round(cssX / CELL), cy = Math.round(cssY / CELL);
+    const r2 = radius * radius;
+    for (let dy = -radius; dy <= radius; dy++) {
+      const y = ((cy + dy) % rows + rows) % rows;
+      const base = y * cols;
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (dx * dx + dy * dy > r2) continue;
+        const x = ((cx + dx) % cols + cols) % cols;
+        cur[base + x] = (Math.random() * states) | 0;
+      }
+    }
+  }
+
+  let lastStamp = 0;
+  window.addEventListener('pointermove', (e) => {
+    const now = performance.now();
+    if (now - lastStamp < 32) return;          // thin the trail a little
+    lastStamp = now;
+    stamp(e.clientX, e.clientY, 4);
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', (e) => {
+    stamp(e.clientX, e.clientY, 13);
+  });
+
+  window.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const next = Math.max(5, Math.min(24, states + (e.deltaY > 0 ? 1 : -1)));
+    if (next === states) return;
+    // Fold the existing field into the new range. The mismatch is itself a
+    // perturbation, so it reorganises rather than restarting from noise.
+    for (let i = 0; i < n; i++) cur[i] = cur[i] % next;
+    states = next;
+    buildPalette();
+    hudStates.textContent = states;
+  }, { passive: false });
+
+  /* -------------------------------------------------------------- resize */
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;              // the grid render is already the res cap
+    canvas.height = H;
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    allocate();
+    for (let i = 0; i < WARMUP; i++) step();
+  }
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 200);
+  });
+
+  buildPalette();
+  resize();
+  hudStates.textContent = states;
+
+  /* --------------------------------------------------------------- frame */
+
+  let acc = 0, prev = performance.now();
+  const dtStep = 1000 / STEPS_PER_SEC;
+
+  function frame(now) {
+    const dt = Math.min(120, now - prev);
+    prev = now;
+
+    if (!reduced) {
+      if (gen < ORGANIZE) {
+        // Visible fast-forward: the field organises in the first seconds
+        // instead of the page freezing on load to get there.
+        for (let i = 0; i < 9 && gen < ORGANIZE; i++) step();
+        acc = 0;
+      } else {
+        acc += dt;
+        let guard = 2;               // never spiral-of-death on a slow frame
+        while (acc >= dtStep && guard-- > 0) { step(); acc -= dtStep; }
+        if (acc > dtStep * 4) acc = 0;
+      }
+    }
+
+    draw();
+    hudGen.textContent = gen;
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

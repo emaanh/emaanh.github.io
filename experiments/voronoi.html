@@ -1,0 +1,345 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Voronoi — experiment</title>
+<link rel="stylesheet" href="./lab.css" />
+<style>
+  /* The canvas is translucent, so the page colour shows through it and has
+     to match the paper the cells are drawn on. */
+  body { background: #fbfbfa; }
+  :root { --bg-strength: 0.55; }
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+
+<div class="veil"></div>
+
+<main class="overlay">
+  <h1>Emaan Heidari</h1>
+  <p class="tagline">
+    Computer engineering + CS at USC. I build <em>high-throughput,
+    low-latency</em> systems software.
+  </p>
+  <nav>
+    <a href="/">home</a>
+    <a href="/projects.html">projects</a>
+    <a href="/random.html">random</a>
+  </nav>
+</main>
+
+<div class="hud">
+  <span class="hud-name">delaunay / voronoi</span>
+  <span><b id="hud-count">—</b> cells</span>
+  <span class="hud-hint">move to shatter · scroll to change density</span>
+  <a class="hud-back" href="./">all experiments</a>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: false });
+  const hudCount = document.getElementById('hud-count');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0, H = 0, dpr = 1;
+
+  /* ---------------------------------------------------------------- noise
+     Classic 2D gradient (Perlin) noise. Small, deterministic, no deps. */
+
+  const perm = new Uint8Array(512);
+  (() => {
+    const p = new Uint8Array(256);
+    for (let i = 0; i < 256; i++) p[i] = i;
+    let seed = 1337;
+    const rnd = () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+    for (let i = 255; i > 0; i--) {
+      const j = (rnd() * (i + 1)) | 0;
+      const t = p[i]; p[i] = p[j]; p[j] = t;
+    }
+    for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
+  })();
+
+  const fade = (t) => t * t * t * (t * (t * 6 - 15) + 10);
+
+  function grad(hash, x, y) {
+    switch (hash & 3) {
+      case 0: return  x + y;
+      case 1: return -x + y;
+      case 2: return  x - y;
+      default: return -x - y;
+    }
+  }
+
+  function noise2(x, y) {
+    const X = Math.floor(x) & 255, Y = Math.floor(y) & 255;
+    const xf = x - Math.floor(x), yf = y - Math.floor(y);
+    const u = fade(xf), v = fade(yf);
+    const aa = perm[perm[X] + Y],       ab = perm[perm[X] + Y + 1];
+    const ba = perm[perm[X + 1] + Y],   bb = perm[perm[X + 1] + Y + 1];
+    const x1 = grad(aa, xf, yf)     + u * (grad(ba, xf - 1, yf)     - grad(aa, xf, yf));
+    const x2 = grad(ab, xf, yf - 1) + u * (grad(bb, xf - 1, yf - 1) - grad(ab, xf, yf - 1));
+    return x1 + v * (x2 - x1); // roughly -1..1
+  }
+
+  /* ------------------------------------------------------- delaunay (B-W)
+     Bowyer–Watson incremental triangulation. Rebuilt every frame; at ~150
+     points that is a couple of milliseconds. */
+
+  function circum(ax, ay, bx, by, cx, cy) {
+    const d = 2 * (ax * (by - cy) + bx * (cy - ay) + cx * (ay - by));
+    if (Math.abs(d) < 1e-9) return null;
+    const a2 = ax * ax + ay * ay, b2 = bx * bx + by * by, c2 = cx * cx + cy * cy;
+    const ux = (a2 * (by - cy) + b2 * (cy - ay) + c2 * (ay - by)) / d;
+    const uy = (a2 * (cx - bx) + b2 * (ax - cx) + c2 * (bx - ax)) / d;
+    const dx = ux - ax, dy = uy - ay;
+    return { x: ux, y: uy, r2: dx * dx + dy * dy };
+  }
+
+  function triangulate(px, py, n) {
+    // Super-triangle large enough to swallow every point.
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (let i = 0; i < n; i++) {
+      if (px[i] < minX) minX = px[i];
+      if (px[i] > maxX) maxX = px[i];
+      if (py[i] < minY) minY = py[i];
+      if (py[i] > maxY) maxY = py[i];
+    }
+    const dx = maxX - minX, dy = maxY - minY;
+    const dmax = Math.max(dx, dy) * 10 + 10;
+    const mx = (minX + maxX) / 2, my = (minY + maxY) / 2;
+
+    const sx = [mx - dmax, mx, mx + dmax];
+    const sy = [my - dmax, my + dmax, my - dmax];
+    const X = (i) => (i < n ? px[i] : sx[i - n]);
+    const Y = (i) => (i < n ? py[i] : sy[i - n]);
+
+    let tris = [];
+    {
+      const cc = circum(X(n), Y(n), X(n + 1), Y(n + 1), X(n + 2), Y(n + 2));
+      tris.push({ a: n, b: n + 1, c: n + 2, cc });
+    }
+
+    const bad = [];
+    const edges = [];
+
+    for (let i = 0; i < n; i++) {
+      const x = px[i], y = py[i];
+      bad.length = 0;
+      edges.length = 0;
+
+      for (let t = tris.length - 1; t >= 0; t--) {
+        const tri = tris[t];
+        const cc = tri.cc;
+        if (!cc) { tris.splice(t, 1); continue; }
+        const ex = x - cc.x, ey = y - cc.y;
+        if (ex * ex + ey * ey < cc.r2) {
+          edges.push(tri.a, tri.b, tri.b, tri.c, tri.c, tri.a);
+          tris.splice(t, 1);
+        }
+      }
+
+      // Keep only edges that appear once: the cavity boundary.
+      for (let e = 0; e < edges.length; e += 2) {
+        const a = edges[e], b = edges[e + 1];
+        let shared = false;
+        for (let f = 0; f < edges.length; f += 2) {
+          if (f === e) continue;
+          const c = edges[f], d = edges[f + 1];
+          if ((a === c && b === d) || (a === d && b === c)) { shared = true; break; }
+        }
+        if (!shared) {
+          const cc = circum(X(a), Y(a), X(b), Y(b), x, y);
+          if (cc) tris.push({ a, b, c: i, cc });
+        }
+      }
+    }
+
+    // Drop anything still touching the super-triangle.
+    const out = [];
+    for (let t = 0; t < tris.length; t++) {
+      const tri = tris[t];
+      if (tri.a < n && tri.b < n && tri.c < n) out.push(tri);
+    }
+    return out;
+  }
+
+  /* ---------------------------------------------------------------- sites */
+
+  const RING = 40;          // off-screen guard points, so visible cells close
+  let target = 90;          // interior cells, driven by scroll
+  const sites = [];         // {hx,hy, x,y, seed}
+
+  function spawn() {
+    sites.push({
+      hx: Math.random(), hy: Math.random(),   // home, in 0..1 space
+      x: 0, y: 0,
+      seed: Math.random() * 1000,
+    });
+  }
+
+  function syncCount() {
+    while (sites.length < target) spawn();
+    while (sites.length > target) sites.pop();
+    hudCount.textContent = sites.length;
+  }
+
+  /* ---------------------------------------------------------------- input */
+
+  const mouse = { x: -9999, y: -9999, active: false };
+
+  window.addEventListener('pointermove', (e) => {
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
+    mouse.active = true;
+  }, { passive: true });
+
+  window.addEventListener('pointerleave', () => { mouse.active = false; });
+
+  window.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    target = Math.max(18, Math.min(420, Math.round(target * (1 - e.deltaY * 0.0016))));
+    syncCount();
+  }, { passive: false });
+
+  /* --------------------------------------------------------------- resize */
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  syncCount();
+
+  /* --------------------------------------------------------------- render */
+
+  const NOISE_SCALE = 1.9;   // feature size of the drift field
+  const DRIFT = 46;          // px of wander
+  const PUSH_R = 240;        // mouse repulsion radius
+  const PUSH = 58;           // mouse repulsion strength
+
+  const px = new Float64Array(600);
+  const py = new Float64Array(600);
+
+  let t0 = performance.now();
+
+  function frame(now) {
+    const t = reduced ? 0 : (now - t0) * 0.00008;
+    const n = sites.length;
+
+    // Sites drift on a noise flow field, then get shoved by the cursor.
+    for (let i = 0; i < n; i++) {
+      const s = sites[i];
+      const nx = noise2(s.hx * NOISE_SCALE + t, s.hy * NOISE_SCALE + s.seed);
+      const ny = noise2(s.hy * NOISE_SCALE + s.seed, s.hx * NOISE_SCALE + t);
+
+      let x = s.hx * W + nx * DRIFT;
+      let y = s.hy * H + ny * DRIFT;
+
+      if (mouse.active) {
+        const ddx = x - mouse.x, ddy = y - mouse.y;
+        const dist = Math.hypot(ddx, ddy);
+        if (dist < PUSH_R && dist > 0.001) {
+          const f = (1 - dist / PUSH_R);
+          const amt = PUSH * f * f;
+          x += (ddx / dist) * amt;
+          y += (ddy / dist) * amt;
+        }
+      }
+
+      s.x = x; s.y = y;
+      px[i] = x; py[i] = y;
+    }
+
+    // Guard ring well outside the viewport keeps every visible cell bounded.
+    const pad = Math.max(W, H) * 0.55;
+    for (let i = 0; i < RING; i++) {
+      const a = (i / RING) * Math.PI * 2;
+      px[n + i] = W / 2 + Math.cos(a) * (W / 2 + pad);
+      py[n + i] = H / 2 + Math.sin(a) * (H / 2 + pad);
+    }
+
+    const total = n + RING;
+    const tris = triangulate(px, py, total);
+
+    // Voronoi is the dual: each site's cell is the hull of the circumcentres
+    // of the triangles that touch it, taken in angular order.
+    const cells = new Array(total);
+    for (let i = 0; i < total; i++) cells[i] = null;
+    for (let i = 0; i < tris.length; i++) {
+      const tr = tris[i];
+      const cc = tr.cc;
+      // Guard-ring vertices have no drawn cell, so they are skipped here.
+      if (tr.a < n) (cells[tr.a] || (cells[tr.a] = [])).push(cc);
+      if (tr.b < n) (cells[tr.b] || (cells[tr.b] = [])).push(cc);
+      if (tr.c < n) (cells[tr.c] || (cells[tr.c] = [])).push(cc);
+    }
+
+    ctx.fillStyle = '#fbfbfa';
+    ctx.fillRect(0, 0, W, H);
+
+    ctx.lineJoin = 'round';
+
+    for (let i = 0; i < n; i++) {
+      const pts = cells[i];
+      if (!pts || pts.length < 3) continue;
+      const s = sites[i];
+
+      pts.sort((p, q) =>
+        Math.atan2(p.y - s.y, p.x - s.x) - Math.atan2(q.y - s.y, q.x - s.x));
+
+      // Shatter: cells near the cursor pull back from their own edges.
+      let shrink = 0.965;
+      let heat = 0;
+      if (mouse.active) {
+        const d = Math.hypot(s.x - mouse.x, s.y - mouse.y);
+        if (d < PUSH_R) {
+          heat = 1 - d / PUSH_R;
+          shrink -= heat * heat * 0.22;
+        }
+      }
+
+      const tone = noise2(s.hx * 2.6 + t * 2, s.hy * 2.6 - t); // -1..1
+      const lift = 0.5 + tone * 0.5;
+
+      // Graphite base; the cursor's neighbourhood darkens and picks up
+      // the only saturation on the page.
+      const l = 96 - lift * 6 - heat * 13;
+      const hue = 210 - heat * 24;
+      const sat = 3 + heat * 20;
+      ctx.fillStyle = 'hsl(' + hue + ' ' + sat + '% ' + l + '%)';
+
+      ctx.beginPath();
+      for (let k = 0; k < pts.length; k++) {
+        const x = s.x + (pts[k].x - s.x) * shrink;
+        const y = s.y + (pts[k].y - s.y) * shrink;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.strokeStyle = 'rgba(255,255,255,' + (0.45 + heat * 0.4) + ')';
+      ctx.lineWidth = 0.7 + heat * 0.7;
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

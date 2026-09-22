@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Life — experiment</title>
+<link rel="stylesheet" href="./lab.css" />
+<style>
+  body { background: #fbfbfa; }
+  :root { --bg-strength: 0.8; }
+</style>
+</head>
+<body>
+<canvas id="c" aria-hidden="true"></canvas>
+
+<div class="veil"></div>
+
+<main class="overlay">
+  <h1>Emaan Heidari</h1>
+  <p class="tagline">
+    Computer engineering + CS at USC. I build <em>high-throughput,
+    low-latency</em> systems software.
+  </p>
+  <nav>
+    <a href="/">home</a>
+    <a href="/projects.html">projects</a>
+    <a href="/random.html">random</a>
+  </nav>
+</main>
+
+<div class="hud">
+  <span class="hud-name">game of life</span>
+  <span>gen <b id="hud-gen">0</b></span>
+  <span><b id="hud-pop">0</b> live</span>
+  <span><b id="hud-rate">—</b>/s</span>
+  <span class="hud-hint">move to seed · click to drop a soup · scroll for speed</span>
+  <a class="hud-back" href="./">all experiments</a>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* Conway's Game of Life, B3/S23, on a torus.
+
+     Cells are drawn as crisp squares on the device pixel grid — no blur, no
+     upscaling, no smeared trails. Life is only recognisable as Life if you
+     can pick out a glider and watch it walk, and anything that softens the
+     cells into tone takes that away. Subtlety comes from the colour being
+     pale, not from the shapes being vague.
+
+     Life on a finite grid does stop: a random soup collapses into still
+     lifes and blinkers within a few thousand generations. So churn is
+     measured every step, and the field is fed only once it has genuinely
+     settled — never while the pattern is still doing something itself. */
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d', { alpha: true });
+  const hudGen = document.getElementById('hud-gen');
+  const hudPop = document.getElementById('hud-pop');
+  const hudRate = document.getElementById('hud-rate');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const Q = new URLSearchParams(location.search);
+  const num = (k, d, lo, hi) =>
+    Math.max(lo, Math.min(hi, parseFloat(Q.get(k)) || d));
+
+  const CELL = num('cell', 9, 3, 40);        // px per cell; big enough to read
+  const SEED_DENSITY = num('density', 0.30, 0.02, 0.9);
+  const WARMUP = num('warm', 400, 0, 4000);  // past the initial undifferentiated boil
+  const GHOSTS = Q.get('ghosts') !== '0';    // one-generation fade on death
+
+  const LIVE = '#9aa3b2';
+  const GHOST = 'rgba(154, 163, 178, 0.28)';
+
+  const STAGNANT_CHURN = 0.0012;             // fraction of cells changing
+  const STAGNANT_GENS = 45;                  // ...for this long before feeding
+
+  let rate = num('rate', 10, 1, 60);         // generations per second
+
+  let cols = 0, rows = 0, n = 0;
+  let cur, nxt, died;
+  let xm, xp, ym, yp;                        // torus neighbour lookups
+  let gen = 0, pop = 0, stagnant = 0;
+  let W = 0, H = 0, dpr = 1;
+
+  // A patch of random cells: the initial soup, the cursor, and the feeder.
+  function soup(ccx, ccy, radius, density) {
+    const r2 = radius * radius;
+    for (let dy = -radius; dy <= radius; dy++) {
+      const y = ((ccy + dy) % rows + rows) % rows;
+      const base = y * cols;
+      for (let dx = -radius; dx <= radius; dx++) {
+        if (dx * dx + dy * dy > r2) continue;
+        const x = ((ccx + dx) % cols + cols) % cols;
+        if (Math.random() < density) cur[base + x] = 1;
+      }
+    }
+  }
+
+  function allocate() {
+    cols = Math.max(16, Math.ceil(W / CELL));
+    rows = Math.max(16, Math.ceil(H / CELL));
+    n = cols * rows;
+
+    cur = new Uint8Array(n);
+    nxt = new Uint8Array(n);
+    died = new Uint8Array(n);
+
+    xm = new Int32Array(cols); xp = new Int32Array(cols);
+    for (let x = 0; x < cols; x++) {
+      xm[x] = x === 0 ? cols - 1 : x - 1;
+      xp[x] = x === cols - 1 ? 0 : x + 1;
+    }
+    ym = new Int32Array(rows); yp = new Int32Array(rows);
+    for (let y = 0; y < rows; y++) {
+      ym[y] = (y === 0 ? rows - 1 : y - 1) * cols;
+      yp[y] = (y === rows - 1 ? 0 : y + 1) * cols;
+    }
+
+    for (let i = 0; i < n; i++) cur[i] = Math.random() < SEED_DENSITY ? 1 : 0;
+    gen = 0;
+    stagnant = 0;
+  }
+
+  function step() {
+    let changed = 0, live = 0;
+
+    for (let y = 0; y < rows; y++) {
+      const r0 = y * cols, rU = ym[y], rD = yp[y];
+
+      for (let x = 0; x < cols; x++) {
+        const i = r0 + x;
+        const l = xm[x], r = xp[x];
+
+        const c = cur[rU + l] + cur[rU + x] + cur[rU + r]
+                + cur[r0 + l]               + cur[r0 + r]
+                + cur[rD + l] + cur[rD + x] + cur[rD + r];
+
+        const was = cur[i];
+        // B3/S23: born on exactly three, survives on two or three.
+        const now = was ? (c === 2 || c === 3 ? 1 : 0) : (c === 3 ? 1 : 0);
+
+        nxt[i] = now;
+        died[i] = was && !now ? 1 : 0;
+        if (now !== was) changed++;
+        if (now) live++;
+      }
+    }
+
+    const t = cur; cur = nxt; nxt = t;
+    gen++;
+    pop = live;
+
+    // Feed it only once it has genuinely stopped doing anything.
+    if (changed < n * STAGNANT_CHURN) stagnant++; else stagnant = 0;
+    if (stagnant > STAGNANT_GENS) {
+      soup((Math.random() * cols) | 0, (Math.random() * rows) | 0, 16, 0.42);
+      stagnant = 0;
+    }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+
+    if (GHOSTS) {
+      ctx.fillStyle = GHOST;
+      for (let y = 0; y < rows; y++) {
+        const r0 = y * cols, py = y * CELL;
+        for (let x = 0; x < cols; x++) {
+          if (died[r0 + x]) ctx.fillRect(x * CELL, py, CELL, CELL);
+        }
+      }
+    }
+
+    ctx.fillStyle = LIVE;
+    for (let y = 0; y < rows; y++) {
+      const r0 = y * cols, py = y * CELL;
+      for (let x = 0; x < cols; x++) {
+        if (cur[r0 + x]) ctx.fillRect(x * CELL, py, CELL, CELL);
+      }
+    }
+  }
+
+  /* --------------------------------------------------------------- input */
+
+  let lastSeed = 0;
+  window.addEventListener('pointermove', (e) => {
+    const now = performance.now();
+    if (now - lastSeed < 40) return;
+    lastSeed = now;
+    soup(Math.round(e.clientX / CELL), Math.round(e.clientY / CELL), 2, 0.5);
+  }, { passive: true });
+
+  window.addEventListener('pointerdown', (e) => {
+    soup(Math.round(e.clientX / CELL), Math.round(e.clientY / CELL), 12, 0.42);
+  });
+
+  window.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    rate = Math.max(1, Math.min(60, rate * (1 - e.deltaY * 0.0016)));
+    hudRate.textContent = rate.toFixed(0);
+  }, { passive: false });
+
+  /* -------------------------------------------------------------- resize */
+
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    // Back the canvas with real device pixels and draw in CSS units, so the
+    // cell edges land on the pixel grid instead of being resampled.
+    canvas.width = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    allocate();
+    for (let i = 0; i < WARMUP; i++) step();
+  }
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(resize, 200);
+  });
+
+  resize();
+  hudRate.textContent = rate.toFixed(0);
+
+  /* --------------------------------------------------------------- frame */
+
+  let acc = 0, prev = performance.now();
+
+  function frame(now) {
+    const dt = Math.min(200, now - prev);
+    prev = now;
+
+    if (!reduced) {
+      acc += dt;
+      const dtStep = 1000 / rate;
+      let guard = 4;                 // never spiral-of-death on a slow frame
+      while (acc >= dtStep && guard-- > 0) { step(); acc -= dtStep; }
+      if (acc > dtStep * 4) acc = 0;
+    }
+
+    draw();
+    hudGen.textContent = gen;
+    hudPop.textContent = pop;
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

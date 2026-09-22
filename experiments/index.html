@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Front-page experiments</title>
+<link rel="stylesheet" href="./lab.css" />
+<style>
+  html, body { overflow: auto; background: #fbfbfa; }
+  .wrap {
+    max-width: 46rem;
+    margin: 0 auto;
+    padding: clamp(3rem, 12vh, 7rem) max(1.5rem, 5vw) 6rem;
+    color: #171717;
+  }
+  h1 {
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    font-weight: 500;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.75rem;
+  }
+  .lede {
+    color: #525252;
+    line-height: 1.65;
+    margin: 0 0 3rem;
+    max-width: 34rem;
+  }
+  .lede em { font-family: var(--font-serif); font-style: italic; }
+  a.card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    padding: 1.4rem 0;
+    border-top: 1px solid #e5e5e5;
+  }
+  a.card:last-of-type { border-bottom: 1px solid #e5e5e5; }
+  .card-top {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+  }
+  .card h2 {
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .card .tag {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #a3a3a3;
+  }
+  .card .arrow { margin-left: auto; color: #a3a3a3; transition: transform 160ms ease; }
+  .card:hover .arrow { transform: translate(3px, -3px); }
+  .card p { margin: 0.55rem 0 0; color: #525252; line-height: 1.6; max-width: 36rem; }
+  .card .how {
+    margin-top: 0.5rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    color: #737373;
+  }
+  .note {
+    margin-top: 3rem;
+    font-size: 0.85rem;
+    color: #737373;
+    line-height: 1.7;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Front-page experiments</h1>
+  <p class="lede">
+    Five takes on a living background, each one full-bleed behind the same
+    placeholder copy so you can judge <em>legibility</em>, not just the effect.
+    No dependencies, no build step.
+  </p>
+
+  <a class="card" href="./voronoi.html">
+    <div class="card-top">
+      <h2>Delaunay / Voronoi</h2>
+      <span class="tag">canvas 2d</span>
+      <span class="arrow">↗</span>
+    </div>
+    <p>
+      Sites drift on a Perlin flow field; the triangulation is rebuilt every
+      frame with Bowyer–Watson and the Voronoi cells come off its dual. The
+      cursor shoves sites away and makes nearby cells pull back from their own
+      edges, so the plane looks like it is shattering around you.
+    </p>
+    <p class="how">move — shatter + repel · scroll — 18…420 cells</p>
+  </a>
+
+  <a class="card" href="./fractal.html">
+    <div class="card-top">
+      <h2>Mandelbrot / Julia</h2>
+      <span class="tag">webgl</span>
+      <span class="arrow">↗</span>
+    </div>
+    <p>
+      A fragment shader with continuous escape-time colouring, zooming forever
+      into seahorse valley. The cursor steers the descent — it aims at whatever
+      is under the pointer. Click to flip to Julia, where the cursor rides the
+      main cardioid's boundary and the set morphs live.
+    </p>
+    <p class="how">move — steer / set c · scroll — zoom · click — switch set</p>
+  </a>
+
+  <a class="card" href="./life.html">
+    <div class="card-top">
+      <h2>Game of Life</h2>
+      <span class="tag">canvas 2d</span>
+      <span class="arrow">↗</span>
+    </div>
+    <p>
+      B3/S23 on a torus, drawn as crisp squares on the device pixel grid — no
+      blur, no upscaling. Life only reads as Life if you can pick out a glider
+      and watch it walk, so the subtlety is in the colour being pale, not in
+      the cells being vague. Dying cells leave a one-generation ghost.
+    </p>
+    <p>
+      Life on a finite grid does stop. Churn is measured every step and the
+      field is fed a soup only once it has genuinely settled — never while the
+      pattern is still doing something on its own.
+    </p>
+    <p class="how">move — seed · click — drop a soup · scroll — 1…60 gen/s</p>
+    <p class="how">tunable: <code>?cell=</code>, <code>?density=</code>, <code>?rate=</code>, <code>?warm=</code>, <code>?ghosts=0</code></p>
+  </a>
+
+  <a class="card" href="./donut.html">
+    <div class="card-top">
+      <h2>ASCII donut</h2>
+      <span class="tag">text</span>
+      <span class="arrow">↗</span>
+    </div>
+    <p>
+      Andy Sloane's donut, kept as he wrote it — a torus swept as two nested
+      angles, spun about x and z, projected with 1/z and resolved by a
+      z-buffer. Each surface normal is dotted with a light behind the viewer
+      and that luminance indexes twelve glyphs from <code>.</code> to
+      <code>@</code>. The shading <em>is</em> the character set; no colour
+      does any work. Output is a <code>&lt;pre&gt;</code>, so it stays real
+      selectable text rather than pixels.
+    </p>
+    <p class="how">move — lean it toward the cursor · scroll — glyph size</p>
+    <p class="how">tunable: <code>?fs=</code>, <code>?fill=</code></p>
+  </a>
+
+  <a class="card" href="./tesseract.html">
+    <div class="card-top">
+      <h2>Tesseract</h2>
+      <span class="tag">text</span>
+      <span class="arrow">↗</span>
+    </div>
+    <p>
+      The 4-cube, wireframed in the same glyph ramp — sixteen vertices at
+      every (±1,±1,±1,±1), and an edge wherever two differ in exactly one
+      coordinate. Rotation in 4-space happens in a <em>plane</em>, not about
+      an axis, so there are six to choose from and no axis of rotation exists.
+    </p>
+    <p>
+      Two perspective divides, not one: 4D→3D through w, then 3D→2D through
+      z. That first divide is the whole trick — there is no small inner cube
+      in the object, only the far cell in w being shrunk, which is why the two
+      swap places as it turns. Depth drives the glyph, so the brightness you
+      read is mostly the fourth dimension.
+    </p>
+    <p class="how">move — turn it in two planes · scroll — glyph size</p>
+    <p class="how">tunable: <code>?fs=</code>, <code>?fill=</code>, <code>?offset=</code></p>
+  </a>
+
+  <p class="note">
+    All three honour <code>prefers-reduced-motion</code> by holding still.
+    The fractal is capped at a zoom of about 4×10⁵ — past that, 32-bit floats
+    in the shader run out of mantissa and the image breaks into blocks, so it
+    breathes back out instead. The automaton's rule is URL-tunable
+    (<code>n</code>, <code>r</code>, <code>t</code>, <code>cell</code>,
+    <code>warm</code>): high thresholds relative to the neighbourhood size
+    never nucleate and stay as noise indefinitely.
+  </p>
+  <p class="note">
+    Each page sets <code>--bg-strength</code> to hold the background back
+    behind the copy; raise it per page if any of these want more presence.
+    Sloane's angular steps assume a donut about 30 characters across, so the
+    donut scales them with its projected size — sample that surface onto a
+    250-column grid at the original steps and the samples stop touching,
+    which reads as stripes instead of a skin.
+    There is a fourth on disk — <a href="./automata.html">a cyclic automaton</a>,
+    spiral waves that never settle — left in as an aside.
+  </p>
+</div>
+</body>
+</html>

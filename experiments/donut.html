@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Donut — experiment</title>
+<link rel="stylesheet" href="./lab.css" />
+<style>
+  body { background: #fbfbfa; }
+  :root { --bg-strength: 0.9; }
+
+  /* Real text, not pixels: it selects, it scales with the font, and the
+     glyph ramp is doing the shading the way the original does. */
+  #art {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    z-index: 0;
+    font-family: var(--font-mono);
+    color: #9aa3b2;
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+    opacity: var(--bg-strength, 1);
+    letter-spacing: 0;
+  }
+</style>
+</head>
+<body>
+<pre id="art" aria-hidden="true"></pre>
+
+<div class="veil"></div>
+
+<main class="overlay">
+  <h1>Emaan Heidari</h1>
+  <p class="tagline">
+    Computer engineering + CS at USC. I build <em>high-throughput,
+    low-latency</em> systems software.
+  </p>
+  <nav>
+    <a href="/">home</a>
+    <a href="/projects.html">projects</a>
+    <a href="/random.html">random</a>
+  </nav>
+</main>
+
+<div class="hud">
+  <span class="hud-name">ascii donut</span>
+  <span><b id="hud-grid">—</b></span>
+  <span><b id="hud-fs">—</b>px</span>
+  <span class="hud-hint">move to lean it · scroll to resize the glyphs</span>
+  <a class="hud-back" href="./">all experiments</a>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* Andy Sloane's donut, kept as he wrote it.
+
+     A torus swept as two nested angles — theta around the tube, phi around
+     the hole — spun by A about x and B about z, projected with 1/z and
+     resolved by a z-buffer. Each point's surface normal is dotted with a
+     fixed light behind the viewer, and that luminance indexes a ramp of
+     twelve glyphs from '.' to '@'. The shading is the character set; there
+     is no colour doing any work here.
+
+     Output goes into a <pre> rather than a canvas, so it stays actual text
+     at whatever size the font lands. */
+
+  const RAMP = '.,-~:;=!*#$@';
+  // Sloane's steps are tuned for a donut about 30 characters across. Sample
+  // the same surface onto a much finer grid and the samples stop touching,
+  // which reads as stripes rather than a solid skin — so the steps scale
+  // with the projected size, and the glyphs are kept large enough that they
+  // rarely have to.
+  const THETA_BASE = 0.07;    // around the tube
+  const PHI_BASE = 0.02;      // around the hole
+  const TUNED_K1 = 30;
+  const K2 = 5;               // viewer distance
+  let thetaStep = THETA_BASE, phiStep = PHI_BASE;
+
+  const art = document.getElementById('art');
+  const hudGrid = document.getElementById('hud-grid');
+  const hudFs = document.getElementById('hud-fs');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const Q = new URLSearchParams(location.search);
+  const num = (k, d, lo, hi) =>
+    Math.max(lo, Math.min(hi, parseFloat(Q.get(k)) || d));
+
+  let fontSize = num('fs', 20, 5, 60);
+  const FILL = num('fill', 0.58, 0.1, 1);   // fraction of the shorter axis
+
+  let cols = 0, rows = 0, cellW = 0, cellH = 0;
+  let buf, zbuf, rowChars;
+  let cx = 0, cy = 0, K1 = 0, aspect = 2;
+
+  let A = 0.6, B = 0.3;          // the spin
+  let leanA = 0, leanB = 0;      // cursor offset, eased
+  let wantA = 0, wantB = 0;
+
+  const meter = document.createElement('canvas').getContext('2d');
+
+  function layout() {
+    const family = getComputedStyle(art).fontFamily;
+    meter.font = fontSize + 'px ' + family;
+    // Monospace, so any glyph gives the advance width.
+    cellW = meter.measureText('M').width || fontSize * 0.6;
+    cellH = Math.round(fontSize * 1.08);
+    art.style.fontSize = fontSize + 'px';
+    art.style.lineHeight = cellH + 'px';
+
+    cols = Math.max(20, Math.floor(window.innerWidth / cellW));
+    rows = Math.max(10, Math.floor(window.innerHeight / cellH));
+
+    buf = new Uint8Array(cols * rows);
+    zbuf = new Float32Array(cols * rows);
+    rowChars = new Array(rows);
+
+    cx = cols / 2;
+    cy = rows / 2;
+
+    // Characters are roughly twice as tall as wide, so the vertical scale
+    // has to be divided by that or the torus comes out as an ellipse.
+    aspect = cellH / cellW;
+
+    // The projected torus spans about 3/K2 in x; size it to the short axis.
+    const byW = (cols * FILL) / (3 / K2) / 2;
+    const byH = (rows * aspect * FILL) / (3 / K2) / 2;
+    K1 = Math.min(byW, byH);
+
+    const q = Math.max(0.35, Math.min(1, TUNED_K1 / K1));
+    thetaStep = THETA_BASE * q;
+    phiStep = PHI_BASE * q;
+
+    hudGrid.textContent = cols + '×' + rows;
+    hudFs.textContent = fontSize;
+  }
+
+  function render() {
+    const size = cols * rows;
+    buf.fill(32);          // space
+    zbuf.fill(0);
+
+    const sinA = Math.sin(A), cosA = Math.cos(A);
+    const sinB = Math.sin(B), cosB = Math.cos(B);
+
+    for (let theta = 0; theta < 6.283185; theta += thetaStep) {
+      const ct = Math.cos(theta), st = Math.sin(theta);
+      const h = ct + 2;                       // R2 = 2, R1 = 1
+
+      for (let phi = 0; phi < 6.283185; phi += phiStep) {
+        const sp = Math.sin(phi), cp = Math.cos(phi);
+
+        const D = 1 / (sp * h * sinA + st * cosA + K2);   // 1/z
+        const t = sp * h * cosA - st * sinA;
+
+        const x = (cx + K1 * D * (cp * h * cosB - t * sinB)) | 0;
+        const y = (cy + (K1 / aspect) * D * (cp * h * sinB + t * cosB)) | 0;
+
+        if (x < 0 || x >= cols || y < 0 || y >= rows) continue;
+
+        const o = x + cols * y;
+        if (D <= zbuf[o]) continue;            // something nearer is there
+
+        // Surface normal against a light sitting behind the viewer.
+        let N = Math.round(
+          8 * ((st * sinA - sp * ct * cosA) * cosB
+               - sp * ct * sinA - st * cosA - cp * ct * sinB));
+        if (N < 0) N = 0;
+        if (N > 11) N = 11;
+
+        zbuf[o] = D;
+        buf[o] = RAMP.charCodeAt(N);
+      }
+    }
+
+    for (let y = 0; y < rows; y++) {
+      rowChars[y] = String.fromCharCode.apply(
+        null, buf.subarray(y * cols, y * cols + cols));
+    }
+    art.textContent = rowChars.join('\n');
+  }
+
+  /* --------------------------------------------------------------- input */
+
+  window.addEventListener('pointermove', (e) => {
+    wantA = (e.clientY / window.innerHeight - 0.5) * 1.5;
+    wantB = (e.clientX / window.innerWidth - 0.5) * 1.5;
+  }, { passive: true });
+
+  window.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const next = Math.max(5, Math.min(40,
+      fontSize * (1 - e.deltaY * 0.0014)));
+    if (Math.round(next) === Math.round(fontSize)) return;
+    fontSize = next;
+    layout();
+  }, { passive: false });
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layout, 150);
+  });
+
+  layout();
+
+  /* --------------------------------------------------------------- frame */
+
+  let prev = performance.now();
+
+  function frame(now) {
+    const dt = Math.min(100, now - prev) / 16.667;
+    prev = now;
+
+    if (!reduced) {
+      A += 0.028 * dt;
+      B += 0.014 * dt;
+    }
+    leanA += (wantA - leanA) * 0.06;
+    leanB += (wantB - leanB) * 0.06;
+
+    const keepA = A, keepB = B;
+    A += leanA; B += leanB;
+    render();
+    A = keepA; B = keepB;
+
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

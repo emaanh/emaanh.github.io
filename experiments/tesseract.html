@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tesseract — experiment</title>
+<link rel="stylesheet" href="./lab.css" />
+<style>
+  body { background: #fbfbfa; }
+  :root { --bg-strength: 0.9; }
+
+  #art {
+    position: fixed;
+    inset: 0;
+    margin: 0;
+    z-index: 0;
+    font-family: var(--font-mono);
+    color: #9aa3b2;
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+    opacity: var(--bg-strength, 1);
+  }
+</style>
+</head>
+<body>
+<pre id="art" aria-hidden="true"></pre>
+
+<div class="veil"></div>
+
+<main class="overlay">
+  <h1>Emaan Heidari</h1>
+  <p class="tagline">
+    Computer engineering + CS at USC. I build <em>high-throughput,
+    low-latency</em> systems software.
+  </p>
+  <nav>
+    <a href="/">home</a>
+    <a href="/projects.html">projects</a>
+    <a href="/random.html">random</a>
+  </nav>
+</main>
+
+<div class="hud">
+  <span class="hud-name">tesseract</span>
+  <span><b id="hud-grid">—</b></span>
+  <span><b>16</b> vertices · <b>32</b> edges</span>
+  <span class="hud-hint">move to turn it · scroll to resize the glyphs</span>
+  <a class="hud-back" href="./">all experiments</a>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* A tesseract: the 4-cube, wireframed in text.
+
+     Sixteen vertices at every (±1,±1,±1,±1), and an edge wherever two of
+     them differ in exactly one coordinate — 32 of them. It is rotated in
+     4-space, where rotation happens in a plane rather than about an axis,
+     so there are six independent planes to turn in and no such thing as an
+     axis of rotation.
+
+     Then two perspective divides, not one: 4D to 3D through w, 3D to 2D
+     through z. That first divide is what produces the familiar cube-inside-
+     a-cube — there is no small inner cube in the object, it is just the far
+     cell in w being shrunk by perspective, which is why the two trade
+     places as it turns.
+
+     Depth drives the glyph ramp, so what you read as brightness is mostly
+     the fourth dimension. */
+
+  const RAMP = '.,-~:;=!*#$@';
+  const D4 = 2.6;              // viewer distance in w
+  const D3 = 4.2;              // viewer distance in z
+
+  const art = document.getElementById('art');
+  const hudGrid = document.getElementById('hud-grid');
+  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const Q = new URLSearchParams(location.search);
+  const num = (k, d, lo, hi) =>
+    Math.max(lo, Math.min(hi, parseFloat(Q.get(k)) || d));
+
+  let fontSize = num('fs', 15, 5, 60);
+  const FILL = num('fill', 0.88, 0.1, 1);
+  const OFFSET = num('offset', 0.62, 0.1, 0.9);  // horizontal centre, 0..1
+
+  // Vertices: bit b of the index is the sign of coordinate b. Scaled to unit
+  // norm, which is what makes the fit below exact — a rotation can swing the
+  // whole of a vertex's length onto one axis, so bounding each coordinate
+  // means bounding the norm, not the untransformed coordinate.
+  const R = 0.5;
+  const V = [];
+  for (let i = 0; i < 16; i++) {
+    V.push([
+      (i & 1) ? R : -R,
+      (i & 2) ? R : -R,
+      (i & 4) ? R : -R,
+      (i & 8) ? R : -R,
+    ]);
+  }
+
+  // An edge wherever exactly one coordinate flips.
+  const E = [];
+  for (let i = 0; i < 16; i++) {
+    for (let b = 0; b < 4; b++) {
+      if (!(i & (1 << b))) E.push([i, i | (1 << b)]);
+    }
+  }
+
+  let cols = 0, rows = 0, cellW = 0, cellH = 0;
+  let buf, zbuf, rowChars;
+  let cx = 0, cy = 0, K1 = 0, aspect = 2;
+
+  // One angle per rotation plane we actually use.
+  let aXW = 0.4, aYZ = 0.2, aXY = 0;
+  let leanYW = 0, leanXZ = 0, wantYW = 0, wantXZ = 0;
+
+  let depth = new Float64Array(0);
+
+  const ux = new Float64Array(16);
+  const uy = new Float64Array(16);
+  const px = new Float64Array(16);
+  const py = new Float64Array(16);
+  const pd = new Float64Array(16);
+
+  const meter = document.createElement('canvas').getContext('2d');
+
+  function layout() {
+    const family = getComputedStyle(art).fontFamily;
+    meter.font = fontSize + 'px ' + family;
+    cellW = meter.measureText('M').width || fontSize * 0.6;
+    cellH = Math.round(fontSize * 1.08);
+    art.style.fontSize = fontSize + 'px';
+    art.style.lineHeight = cellH + 'px';
+
+    cols = Math.max(20, Math.floor(window.innerWidth / cellW));
+    rows = Math.max(10, Math.floor(window.innerHeight / cellH));
+
+    buf = new Uint8Array(cols * rows);
+    zbuf = new Float32Array(cols * rows);
+    rowChars = new Array(rows);
+
+    // Parked right of centre: the copy lives in the left third, and a single
+    // object dead-centre competes with it in a way a full-bleed field doesn't.
+    cx = cols * OFFSET;
+    cy = rows / 2;
+    aspect = cellH / cellW;
+
+    // Seed only. A worst-case bound (one whole unit-norm vertex on one axis,
+    // at closest w and z) is far larger than any orientation actually
+    // reaches, so sizing to it leaves the shape tiny; the real scale is
+    // fitted to the projected extent each frame below.
+    const k4 = D4 / (D4 - 1);
+    const k3 = D3 / (D3 - k4);
+    K1 = Math.min((cols * FILL) / (2 * k4 * k3),
+                  (rows * aspect * FILL) / (2 * k4 * k3));
+
+    hudGrid.textContent = cols + '×' + rows;
+  }
+
+  // Rotation in 4-space happens in a plane: two coordinates turn, two hold.
+  function spin(p, ang, i, j) {
+    const c = Math.cos(ang), s = Math.sin(ang);
+    const a = p[i], b = p[j];
+    p[i] = a * c - b * s;
+    p[j] = a * s + b * c;
+  }
+
+  function plot(x, y, d) {
+    const xi = Math.round(x), yi = Math.round(y);
+    if (xi < 0 || xi >= cols || yi < 0 || yi >= rows) return;
+    const o = xi + cols * yi;
+    if (d <= zbuf[o]) return;
+    zbuf[o] = d;
+    buf[o] = 1;                      // marked; the glyph is chosen at the end
+    depth[o] = d;
+  }
+
+  function render() {
+    if (depth.length !== cols * rows) depth = new Float64Array(cols * rows);
+    buf.fill(0);
+    zbuf.fill(0);
+
+    let dmin = Infinity, dmax = -Infinity;
+    let maxX = 0, maxY = 0;
+
+    for (let i = 0; i < 16; i++) {
+      const p = V[i].slice();
+
+      spin(p, aXY, 0, 1);
+      spin(p, aXW, 0, 3);
+      spin(p, aYZ, 1, 2);
+      spin(p, leanYW, 1, 3);
+      spin(p, leanXZ, 0, 2);
+
+      const k4 = D4 / (D4 - p[3]);
+      const x3 = p[0] * k4, y3 = p[1] * k4, z3 = p[2] * k4;
+
+      const k3 = D3 / (D3 - z3);
+      const d = k4 * k3;             // bigger is nearer
+
+      ux[i] = x3 * k3;
+      uy[i] = y3 * k3;
+      pd[i] = d;
+
+      const ax = Math.abs(ux[i]), ay = Math.abs(uy[i]);
+      if (ax > maxX) maxX = ax;
+      if (ay > maxY) maxY = ay;
+      if (d < dmin) dmin = d;
+      if (d > dmax) dmax = d;
+    }
+
+    // Fit to what this orientation actually projects to, eased so the shape
+    // breathes instead of snapping as the extent changes.
+    if (maxX > 1e-6 && maxY > 1e-6) {
+      // Sitting off-centre, the usable half-width is whichever side is
+      // shorter — fitting to half the full width would run it off the edge.
+      const halfW = cols * Math.min(OFFSET, 1 - OFFSET);
+      const target = Math.min((halfW * FILL) / maxX,
+                              ((rows / 2) * aspect * FILL) / maxY);
+      // Give way quickly when the shape grows, return slowly when it
+      // shrinks: a lagging scale on the way out is what clips an edge.
+      K1 += (target - K1) * (target < K1 ? 0.3 : 0.03);
+    }
+
+    for (let i = 0; i < 16; i++) {
+      px[i] = cx + K1 * ux[i];
+      py[i] = cy + (K1 / aspect) * uy[i];
+    }
+
+    for (let e = 0; e < E.length; e++) {
+      const a = E[e][0], b = E[e][1];
+      const x0 = px[a], y0 = py[a], x1 = px[b], y1 = py[b];
+      const dx = x1 - x0, dy = (y1 - y0) * aspect;
+      // Step half a cell so the line lands solid rather than dotted.
+      const n = Math.max(2, Math.ceil(Math.hypot(dx, dy) * 2));
+      for (let s = 0; s <= n; s++) {
+        const t = s / n;
+        plot(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, pd[a] + (pd[b] - pd[a]) * t);
+      }
+    }
+
+    // Corners sit on top of whatever edge passes through them.
+    for (let i = 0; i < 16; i++) plot(px[i], py[i], pd[i] + 1e-3);
+
+    const range = dmax - dmin || 1;
+    for (let y = 0; y < rows; y++) {
+      const base = y * cols;
+      for (let x = 0; x < cols; x++) {
+        const o = base + x;
+        if (!buf[o]) { buf[o] = 32; continue; }
+        let k = Math.floor(((depth[o] - dmin) / range) * 11.999);
+        if (k < 0) k = 0; else if (k > 11) k = 11;
+        buf[o] = RAMP.charCodeAt(k);
+      }
+      rowChars[y] = String.fromCharCode.apply(
+        null, buf.subarray(base, base + cols));
+    }
+    art.textContent = rowChars.join('\n');
+  }
+
+  /* --------------------------------------------------------------- input */
+
+  window.addEventListener('pointermove', (e) => {
+    wantXZ = (e.clientY / window.innerHeight - 0.5) * 1.8;
+    wantYW = (e.clientX / window.innerWidth - 0.5) * 1.8;
+  }, { passive: true });
+
+  window.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const next = Math.max(5, Math.min(60, fontSize * (1 - e.deltaY * 0.0014)));
+    if (Math.round(next) === Math.round(fontSize)) return;
+    fontSize = next;
+    layout();
+  }, { passive: false });
+
+  let resizeTimer = 0;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(layout, 150);
+  });
+
+  layout();
+
+  /* --------------------------------------------------------------- frame */
+
+  let prev = performance.now();
+
+  function frame(now) {
+    const dt = Math.min(100, now - prev) / 16.667;
+    prev = now;
+
+    if (!reduced) {
+      aXW += 0.0115 * dt;
+      aYZ += 0.0072 * dt;
+      aXY += 0.0036 * dt;
+    }
+    leanYW += (wantYW - leanYW) * 0.06;
+    leanXZ += (wantXZ - leanXZ) * 0.06;
+
+    render();
+    requestAnimationFrame(frame);
+  }
+
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
