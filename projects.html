@@ -143,18 +143,46 @@
         <div class="layout-lg">
           <h3 class="project-title">HotLoop</h3>
           <div class="pills">
-            <div class="pill">GPU</div>
-            <div class="pill">Distributed Systems</div>
-            <div class="pill">Orchestration</div>
+            <div class="pill">Python</div>
+            <div class="pill">PyTorch</div>
+            <div class="pill">Triton</div>
+            <div class="pill">CUDA</div>
+            <div class="pill">Docker</div>
           </div>
           <div class="project-grid">
             <div class="project-main">
-              <p class="project-tagline">Distributed GPU training orchestration.</p>
+              <p class="project-tagline">A benchmark for autonomous agents doing GPU performance engineering.</p>
               <div class="project-body">
               <p>
-                A controller that fans training work out across a fleet of cloud GPU workers
-                and pulls the results back. Runs stage from short probes through to full
-                multi-hour batches, spread across whichever regions have capacity.
+                Hand an agent a PyTorch reference and a real A100, then measure whether it
+                independently produces something correct and faster. Tasks are procedurally
+                generated and certified on hardware, so the workload regime is what decides
+                which optimization is the right one, rather than the task naming it.
+              </p>
+              <p>
+                Most of the work is in trusting the number at the end. Correctness runs against
+                fp64-calibrated tolerances; speedups come from paired-block timing with bootstrap
+                confidence intervals; submissions are scored in a fresh container on hidden seeds
+                with an anti-cheat regression suite. On locked clocks an A-vs-A comparison returns
+                1.0000, and a planted 1.10&times; is recovered as 1.099 to 1.100 more than 95% of
+                the time. Fresh evaluations of the same solution still differ by about 2%, so a
+                score of record pools at least three.
+              </p>
+              <p>
+                12 sealed tasks: 6 with 3.5 to 18&times; certified headroom over
+                <code>torch.compile</code>, and 4 no-headroom controls to catch a benchmark that
+                flatters everyone. A frontier model beat my own best-known strategy on every
+                headroom task, 17.3&times; where the certificate said 3.48&times;, which makes
+                certified headroom a floor rather than a ceiling. Controls stayed at 1.00&times;,
+                and lazy wrappers like <code>torch.compile</code> modes, CUDA graphs and
+                <code>multi_dot</code> never cleared 1.05&times; on tasks where the agent found
+                7 to 28&times;.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://github.com/emaanh/HotLoop">GitHub</a></strong
+                >
               </p>
               </div>
             </div>
