@@ -627,8 +627,8 @@ video {
 .builds-head {
   display: flex;
   align-items: center;
-  /* Sits right beside the heading rather than being pushed to the far edge. */
-  justify-content: flex-start;
+  /* Heading and tetrahedron travel together as one centred pair. */
+  justify-content: center;
   gap: 1rem;
 }
 
