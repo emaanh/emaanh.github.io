@@ -91,7 +91,7 @@ html {
 }
 
 /* Cross-document page transitions: a fast crossfade between pages. Pure CSS,
-   progressively enhanced — browsers without view transitions (e.g. Firefox)
+   progressively enhanced. Browsers without view transitions (e.g. Firefox)
    fall back to an instant navigation. */
 @view-transition {
   navigation: auto;
@@ -280,12 +280,6 @@ video {
   text-decoration-color: var(--c-black);
 }
 
-/* Inline "open in new tab" glyph that trails a label. */
-.arrow {
-  display: inline;
-  color: var(--c-muted);
-}
-
 /* =========================================================================
    Header + nav
    ========================================================================= */
@@ -389,7 +383,7 @@ video {
 }
 
 /* =========================================================================
-   Home — body stack
+   Home: body stack
    ========================================================================= */
 
 .stack > * + * {
@@ -425,6 +419,17 @@ video {
 .project-pair-name {
   color: var(--c-black);
   font-weight: 500;
+  /* Offset declared here rather than in the hover rule so the underline
+     lands in the same place the moment it appears. */
+  text-underline-offset: 3px;
+}
+
+/* The whole row is the link, so the name only takes an underline once the
+   row is hovered or the link is keyboard-focused. */
+.project-pair:hover .project-pair-name,
+.project-pair:focus-visible .project-pair-name {
+  text-decoration-line: underline;
+  text-decoration-color: var(--c-black);
 }
 
 .project-pair aside {
@@ -479,7 +484,7 @@ video {
 }
 
 /* =========================================================================
-   Home — portrait + intro
+   Home: portrait + intro
    ========================================================================= */
 
 /* Same 1fr/2fr split as the project rows, so the portrait column lines up
@@ -512,6 +517,12 @@ video {
 }
 
 .pair-list > * + * {
+  margin-top: 1rem;
+}
+
+/* Rows written by script live one level down, inside their container, so the
+   sibling rule above never reaches them. Same rhythm, same value. */
+.pair-items > * + * {
   margin-top: 1rem;
 }
 
@@ -637,7 +648,7 @@ video {
 }
 
 /* =========================================================================
-   Random — figure + quotes
+   Random: figure + quotes
    ========================================================================= */
 
 .figure {
