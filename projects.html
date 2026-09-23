@@ -151,22 +151,26 @@
           </div>
           <div class="project-grid">
             <div class="project-main">
-              <p class="project-tagline">A benchmark for autonomous agents doing GPU performance engineering.</p>
+              <p class="project-tagline">A benchmark for agents doing GPU performance engineering.</p>
               <div class="project-body">
               <p>
-                Hand an agent a PyTorch reference and a real A100, then measure whether it
-                independently produces something correct and faster. Tasks are procedurally
-                generated and certified on hardware, so the workload regime is what decides
-                which optimization is the right one.
+                I wanted to know whether an agent could actually do GPU performance work, not
+                just write code that runs. HotLoop hands it a PyTorch reference and a real
+                A100, then checks whether what comes back is correct and faster. Tasks get
+                generated and certified on the hardware, since the right optimization changes
+                with the shapes.
               </p>
               <p>
-                Most of the work is in trusting the number at the end: fp64-calibrated
-                correctness, paired-block timing with bootstrap intervals, hidden seeds in a
-                fresh container, anti-cheat. Of 12 sealed tasks, 6 carry 3.5 to 18&times;
-                certified headroom over <code>torch.compile</code> and 4 are no-headroom
-                controls. A frontier model beat my best-known strategy on every headroom task,
-                17.3&times; where the certificate said 3.48&times;, while the controls stayed
-                at 1.00&times;.
+                The measurement turned out to be the hard part. It's easy to fool yourself with
+                GPU timings, so correctness is checked against fp64, speedups use paired-block
+                timing, and every submission gets rescored in a clean container on seeds the
+                agent never saw. Some tasks have no headroom at all, to catch a benchmark that
+                hands out free wins.
+              </p>
+              <p>
+                Across 12 tasks, a frontier model beat the best strategy I'd written myself on
+                every one with room in it, 17.3&times; where I'd certified 3.48&times;. The
+                controls stayed at 1.00&times;.
               </p>
               <p>
                 <strong
