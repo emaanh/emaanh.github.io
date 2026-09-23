@@ -623,10 +623,6 @@ video {
   border-radius: 0.375rem;
 }
 
-.shot-bordered {
-  border-width: 1px;
-}
-
 /* Section heading with the tetrahedron easter egg pinned to its right. */
 .builds-head {
   display: flex;
