@@ -157,26 +157,16 @@
                 Hand an agent a PyTorch reference and a real A100, then measure whether it
                 independently produces something correct and faster. Tasks are procedurally
                 generated and certified on hardware, so the workload regime is what decides
-                which optimization is the right one, rather than the task naming it.
+                which optimization is the right one.
               </p>
               <p>
-                Most of the work is in trusting the number at the end. Correctness runs against
-                fp64-calibrated tolerances; speedups come from paired-block timing with bootstrap
-                confidence intervals; submissions are scored in a fresh container on hidden seeds
-                with an anti-cheat regression suite. On locked clocks an A-vs-A comparison returns
-                1.0000, and a planted 1.10&times; is recovered as 1.099 to 1.100 more than 95% of
-                the time. Fresh evaluations of the same solution still differ by about 2%, so a
-                score of record pools at least three.
-              </p>
-              <p>
-                12 sealed tasks: 6 with 3.5 to 18&times; certified headroom over
-                <code>torch.compile</code>, and 4 no-headroom controls to catch a benchmark that
-                flatters everyone. A frontier model beat my own best-known strategy on every
-                headroom task, 17.3&times; where the certificate said 3.48&times;, which makes
-                certified headroom a floor rather than a ceiling. Controls stayed at 1.00&times;,
-                and lazy wrappers like <code>torch.compile</code> modes, CUDA graphs and
-                <code>multi_dot</code> never cleared 1.05&times; on tasks where the agent found
-                7 to 28&times;.
+                Most of the work is in trusting the number at the end: fp64-calibrated
+                correctness, paired-block timing with bootstrap intervals, hidden seeds in a
+                fresh container, anti-cheat. Of 12 sealed tasks, 6 carry 3.5 to 18&times;
+                certified headroom over <code>torch.compile</code> and 4 are no-headroom
+                controls. A frontier model beat my best-known strategy on every headroom task,
+                17.3&times; where the certificate said 3.48&times;, while the controls stayed
+                at 1.00&times;.
               </p>
               <p>
                 <strong
