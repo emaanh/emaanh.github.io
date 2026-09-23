@@ -627,7 +627,8 @@ video {
 .builds-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* Sits right beside the heading rather than being pushed to the far edge. */
+  justify-content: flex-start;
   gap: 1rem;
 }
 
