@@ -49,18 +49,19 @@
           </div>
           <div class="project-grid">
             <div class="project-main">
-              <p class="project-tagline">Flash-Decoding and paged KV-cache memory management, written in CUDA.</p>
+              <p class="project-tagline">Paged Flash-Decoding with GQA on tensor cores and an FP8 KV cache, written in CUDA.</p>
               <div class="project-body">
               <p>
-                A from-scratch CUDA build of the two pieces that dominate LLM decode: a split-K
-                flash-decode attention kernel and a paged KV-cache manager, profiled on an NVIDIA
-                A40.
+                A from-scratch CUDA decode attention kernel for a paged KV cache, profiled on an
+                NVIDIA H100. It runs grouped-query attention on tensor cores, looks up each page
+                inside its own 16-byte async copy, and schedules the work as one persistent wave.
               </p>
               <p>
-                Parallelizing over the token dimension instead of the softmax boundary took the
-                kernel from 17 to 477 Gi/s, a 28&times; speedup at long context. Paged allocation
-                fit 4 to 8&times; more concurrent sequences by killing fragmentation, at a flat
-                1.8&times; throughput cost that page size never changes.
+                An earlier FP32 version on an A40 found that paging cost a flat 1.8&times; in
+                throughput. This one removes that cost: 16-token pages run within a point of an
+                unpaged layout, and the kernel sustains 86% of peak DRAM bandwidth, within 4% of
+                FlashInfer. An FP8 cache halves KV memory, fits twice the sequences, and decodes
+                1.86&times; faster, 7% ahead of FlashInfer.
               </p>
               <p>
                 <strong
@@ -76,8 +77,8 @@
                 class="shot-rounded"
                 src="/assets/img/projects/decode-attention.jpg"
                 alt="Efficient Decode Attention project screenshot"
-                width="1027"
-                height="750"
+                width="1338"
+                height="786"
               />
             </div>
           </div>
