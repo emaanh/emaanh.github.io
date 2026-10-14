@@ -38,7 +38,7 @@
 
       <section class="project" id="decode-attention">
         <div class="layout-lg">
-          <h3 class="project-title">Efficient Decode Attention</h3>
+          <h3 class="project-title">Paged Flash-Decoding Attention Kernel</h3>
           <div class="pills">
             <div class="pill">CUDA</div>
             <div class="pill">C++20</div>
@@ -76,9 +76,117 @@
               <img
                 class="shot-rounded"
                 src="/assets/img/projects/decode-attention.jpg"
-                alt="Efficient Decode Attention project screenshot"
+                alt="Paged Flash-Decoding Attention Kernel project screenshot"
                 width="1338"
                 height="786"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="fpga-kws">
+        <div class="layout-lg">
+          <h3 class="project-title">Edge ML FPGA Accelerator for Speech Recognition</h3>
+          <div class="pills">
+            <div class="pill">SystemVerilog</div>
+            <div class="pill">FPGA</div>
+            <div class="pill">PyTorch</div>
+            <div class="pill">Verilator</div>
+            <div class="pill">Yosys</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">Always-on keyword spotting from a live microphone, running on an FPGA.</p>
+              <div class="project-body">
+              <p>
+                This listens to the microphone on a Nexys A7 and shows the word it hears on
+                the 7-segment display. The training data comes from a synthetic pipeline
+                built on open-weight text-to-speech models, so it can be trained on any word,
+                including "Emaan" and "Heidari".
+              </p>
+              <p>
+                Everything after the mic is SystemVerilog: decimation filters, an FFT and mel
+                filter bank, and an int8 CNN that matches the PyTorch model bit for bit.
+                Instead of rerunning the full one-second window, the engine computes one new
+                row of each layer every 40 ms, which cuts the work per result by 25&times;. At
+                a 10 MHz clock it sits idle 93% of the time.
+              </p>
+              <p>
+                I trained it on Speech Commands plus those synthetic clips, then quantized it
+                to int8. It scores 91.9% on the Speech Commands test set and uses about 9% of
+                the FPGA's logic.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://youtu.be/mECDMYMU4tU">Demo</a>,
+                  <a class="link" href="https://github.com/emaanh/fpga-kws">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <img
+                class="shot-rounded"
+                src="/assets/img/projects/fpga-kws.jpg"
+                alt="Edge ML FPGA Accelerator for Speech Recognition project screenshot"
+                width="668"
+                height="678"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="project" id="hotloop">
+        <div class="layout-lg">
+          <h3 class="project-title">HotLoop</h3>
+          <div class="pills">
+            <div class="pill">Python</div>
+            <div class="pill">PyTorch</div>
+            <div class="pill">Triton</div>
+            <div class="pill">CUDA</div>
+            <div class="pill">Docker</div>
+          </div>
+          <div class="project-grid">
+            <div class="project-main">
+              <p class="project-tagline">A benchmark for agents doing GPU performance engineering.</p>
+              <div class="project-body">
+              <p>
+                I wanted to know whether an agent could actually do GPU performance work, not
+                just write code that runs. HotLoop hands it a PyTorch reference and a real
+                A100, then checks whether what comes back is correct and faster. Tasks get
+                generated and certified on the hardware, since the right optimization changes
+                with the shapes.
+              </p>
+              <p>
+                The measurement turned out to be the hard part. It's easy to fool yourself with
+                GPU timings, so correctness is checked against fp64, speedups use paired-block
+                timing, and every submission gets rescored in a clean container on seeds the
+                agent never saw. Some tasks have no headroom at all, to catch a benchmark that
+                hands out free wins.
+              </p>
+              <p>
+                Across 12 tasks, a frontier model beat the best strategy I'd written myself on
+                every one with room in it, 17.3&times; where I'd certified 3.48&times;. The
+                controls stayed at 1.00&times;.
+              </p>
+              <p>
+                <strong
+                  >Links:
+                  <a class="link" href="https://github.com/emaanh/HotLoop">GitHub</a></strong
+                >
+              </p>
+              </div>
+            </div>
+            <div class="project-aside">
+              <img
+                class="shot-rounded"
+                src="/assets/img/projects/hotloop-logo.png"
+                alt="HotLoop logo"
+                width="560"
+                height="560"
               />
             </div>
           </div>
@@ -136,60 +244,6 @@
         </div>
       </section>
 
-      <section class="project" id="hotloop">
-        <div class="layout-lg">
-          <h3 class="project-title">HotLoop</h3>
-          <div class="pills">
-            <div class="pill">Python</div>
-            <div class="pill">PyTorch</div>
-            <div class="pill">Triton</div>
-            <div class="pill">CUDA</div>
-            <div class="pill">Docker</div>
-          </div>
-          <div class="project-grid">
-            <div class="project-main">
-              <p class="project-tagline">A benchmark for agents doing GPU performance engineering.</p>
-              <div class="project-body">
-              <p>
-                I wanted to know whether an agent could actually do GPU performance work, not
-                just write code that runs. HotLoop hands it a PyTorch reference and a real
-                A100, then checks whether what comes back is correct and faster. Tasks get
-                generated and certified on the hardware, since the right optimization changes
-                with the shapes.
-              </p>
-              <p>
-                The measurement turned out to be the hard part. It's easy to fool yourself with
-                GPU timings, so correctness is checked against fp64, speedups use paired-block
-                timing, and every submission gets rescored in a clean container on seeds the
-                agent never saw. Some tasks have no headroom at all, to catch a benchmark that
-                hands out free wins.
-              </p>
-              <p>
-                Across 12 tasks, a frontier model beat the best strategy I'd written myself on
-                every one with room in it, 17.3&times; where I'd certified 3.48&times;. The
-                controls stayed at 1.00&times;.
-              </p>
-              <p>
-                <strong
-                  >Links:
-                  <a class="link" href="https://github.com/emaanh/HotLoop">GitHub</a></strong
-                >
-              </p>
-              </div>
-            </div>
-            <div class="project-aside">
-              <img
-                class="shot-rounded"
-                src="/assets/img/projects/HotLoop.jpg"
-                alt="HotLoop project screenshot"
-                width="1200"
-                height="782"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
       <section class="project" id="murmurmatch">
         <div class="layout-lg">
           <h3 class="project-title">MurmurMatch</h3>
@@ -225,7 +279,7 @@
               <p>
                 <strong
                   >Links:
-                  <a class="link" href="https://murmurmatch.com">Website</a></strong
+                  <a class="link" href="https://murmurmatch.com">murmurmatch.com</a></strong
                 >
               </p>
               </div>
@@ -245,7 +299,7 @@
 
       <section class="project" id="fpga">
         <div class="layout-lg">
-          <h3 class="project-title">FPGA Inference Accelerator</h3>
+          <h3 class="project-title">FPGA Inference Accelerator for MNIST</h3>
           <div class="pills">
             <div class="pill">FPGA</div>
             <div class="pill">Hardware</div>
@@ -272,7 +326,7 @@
               <img
                 class="shot-rounded"
                 src="/assets/img/projects/fpga.jpg"
-                alt="FPGA Inference Accelerator project screenshot"
+                alt="FPGA Inference Accelerator for MNIST project screenshot"
                 width="1171"
                 height="750"
               />
